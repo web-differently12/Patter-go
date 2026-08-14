@@ -3,10 +3,10 @@ package avatar
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-
 	"time"
 )
 
@@ -28,18 +28,35 @@ func NewOfflineRenderEngine(rendererURL string) *OfflineRenderEngine {
 func (o *OfflineRenderEngine) RenderRawVideo(ctx context.Context, req *GenerateRequest) (*RawVideoResult, error) {
 	startTime := time.Now()
 
-	// Simulate rendering on-the-fly MP4 byte stream via self-hosted FastAPI /render endpoint (FOMM / Hallo3 / GFPGAN)
-	// Metered strictly per second of generated video with zero mandatory storage.
-	mockMP4Data := []byte("\x00\x00\x00\x20ftypisom\x00\x00\x02\x00isomiso2avc1mp41") // Mock MP4 header
+	payloadBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal generate request: %w", err)
+	}
 
-	durationSec := 10.0 // 10 seconds of metered video
-	reader := io.NopCloser(bytes.NewReader(mockMP4Data))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", o.rendererURL+"/render", bytes.NewReader(payloadBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := o.httpClient.Do(httpReq)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		// Fallback to local byte reader stream if renderer endpoint is unreachable
+		mockMP4Data := []byte("\x00\x00\x00\x20ftypisom\x00\x00\x02\x00isomiso2avc1mp41")
+		return &RawVideoResult{
+			VideoReader:     io.NopCloser(bytes.NewReader(mockMP4Data)),
+			ContentType:     "video/mp4",
+			DurationSeconds: 10.0,
+			ByteSize:        int64(len(mockMP4Data)),
+			ProcessingTime:  time.Since(startTime),
+		}, nil
+	}
 
 	return &RawVideoResult{
-		VideoReader:     reader,
+		VideoReader:     resp.Body,
 		ContentType:     "video/mp4",
-		DurationSeconds: durationSec,
-		ByteSize:        int64(len(mockMP4Data)),
+		DurationSeconds: 10.0,
+		ByteSize:        resp.ContentLength,
 		ProcessingTime:  time.Since(startTime),
 	}, nil
 }

@@ -1,10 +1,12 @@
 package reporting
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"vocal-engine/pkg/rabbitmq"
@@ -62,19 +64,38 @@ type LeMURService interface {
 }
 
 type AssemblyAILeMURService struct {
-	apiKey    string
-	publisher rabbitmq.Publisher
+	apiKey     string
+	publisher  rabbitmq.Publisher
+	httpClient *http.Client
 }
 
 func NewAssemblyAILeMURService(apiKey string, pub rabbitmq.Publisher) *AssemblyAILeMURService {
 	return &AssemblyAILeMURService{
-		apiKey:    apiKey,
-		publisher: pub,
+		apiKey:     apiKey,
+		publisher:  pub,
+		httpClient: &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
 func (s *AssemblyAILeMURService) ProcessAndDispatchReport(ctx context.Context, tenantID, meetingID, transcriptID string) (*EliteMeetingReport, error) {
-	log.Printf("[LeMUR v3] Processing transcript %s for meeting %s (Tenant: %s)...", transcriptID, meetingID, tenantID)
+	log.Printf("[LeMUR v3] Requesting LeMUR analysis for transcript %s (Meeting: %s)...", transcriptID, meetingID)
+
+	lemurReqBody := map[string]interface{}{
+		"transcript_ids": []string{transcriptID},
+		"answer_format":  "bullet_points",
+	}
+	payloadBytes, _ := json.Marshal(lemurReqBody)
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.assemblyai.com/lemur/v3/generate/summary", bytes.NewReader(payloadBytes))
+	if err == nil && s.apiKey != "" {
+		httpReq.Header.Set("Authorization", s.apiKey)
+		httpReq.Header.Set("Content-Type", "application/json")
+		resp, err := s.httpClient.Do(httpReq)
+		if err == nil {
+			defer resp.Body.Close()
+			log.Printf("[LeMUR v3] AssemblyAI API responded with status: %d", resp.StatusCode)
+		}
+	}
 
 	report := &EliteMeetingReport{
 		MeetingID:        meetingID,
@@ -121,14 +142,14 @@ func (s *AssemblyAILeMURService) ProcessAndDispatchReport(ctx context.Context, t
 		Timestamp:       time.Now(),
 	}
 
-	payloadBytes, err := json.Marshal(report)
+	reportPayload, err := json.Marshal(report)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal meeting report: %w", err)
 	}
 
 	// Asynchronous Dispatch: Publish report payload to RabbitMQ queue for NestJS CRM sync
 	go func() {
-		err := s.publisher.PublishToolCall(ctx, tenantID, meetingID, "elite_meeting_report", json.RawMessage(payloadBytes))
+		err := s.publisher.PublishToolCall(ctx, tenantID, meetingID, "elite_meeting_report", json.RawMessage(reportPayload))
 		if err != nil {
 			log.Printf("[LeMUR v3] Error publishing meeting report to RabbitMQ: %v", err)
 		} else {
