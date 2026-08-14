@@ -1,5 +1,241 @@
 basePath: /
 definitions:
+  dto.AvatarLiveRequest:
+    properties:
+      face_url:
+        example: https://acme.com/avatar.png
+        type: string
+      voice_id:
+        example: alloy
+        type: string
+    required:
+    - face_url
+    type: object
+  dto.AvatarOfflineRequest:
+    properties:
+      face_url:
+        type: string
+      script_text:
+        type: string
+      voice_id:
+        example: alloy
+        type: string
+    required:
+    - face_url
+    - script_text
+    type: object
+  dto.BrainChatRequest:
+    properties:
+      channel:
+        description: whatsapp, sms, webchat
+        example: whatsapp
+        type: string
+      context_crm:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        example: Hello, what is my order status?
+        type: string
+    required:
+    - message
+    type: object
+  dto.BrainChatResponse:
+    properties:
+      model_used:
+        example: openrouter/gpt-4o
+        type: string
+      reply:
+        example: 'Your order #1234 is currently in transit.'
+        type: string
+    type: object
+  dto.MeetingBotRequest:
+    properties:
+      bot_name:
+        example: Patter AI Assistant
+        type: string
+      meeting_url:
+        example: https://meet.google.com/abc-defg-hij
+        type: string
+    required:
+    - meeting_url
+    type: object
+  dto.MeetingScheduleRequest:
+    properties:
+      provider:
+        description: livekit_webrtc, dyte
+        example: livekit_webrtc
+        type: string
+      room_name:
+        example: acme-strategy-sync
+        type: string
+    required:
+    - room_name
+    type: object
+  dto.MessageCampaignRequest:
+    properties:
+      name:
+        type: string
+      recipients:
+        items:
+          type: string
+        type: array
+      template_text:
+        example: Hello {{first_name}}, special offer for {{company}}!
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - name
+    - recipients
+    - template_text
+    type: object
+  dto.MessageSendRequest:
+    properties:
+      media_url:
+        type: string
+      text:
+        example: Your verification code is 4920
+        type: string
+      to_number:
+        example: "+15550199"
+        type: string
+    required:
+    - text
+    - to_number
+    type: object
+  dto.TenantBrandingDTO:
+    properties:
+      custom_domain:
+        example: ai.acme.com
+        type: string
+      default_voice:
+        example: alloy
+        type: string
+      display_name:
+        example: Acme AI Assistant
+        type: string
+      logo_url:
+        example: https://acme.com/logo.png
+        type: string
+      primary_color:
+        example: '#3B82F6'
+        type: string
+      tenant_id:
+        example: tenant-123
+        type: string
+    type: object
+  dto.TenantConfigDTO:
+    properties:
+      assemblyai_api_key:
+        example: assembly123
+        type: string
+      elevenlabs_api_key:
+        example: eleven123
+        type: string
+      evolution_go_server_url:
+        example: http://evolution-go:8080
+        type: string
+      livekit_api_key:
+        example: lk_key
+        type: string
+      livekit_api_secret:
+        example: lk_secret
+        type: string
+      livekit_host:
+        example: wss://livekit.example.com
+        type: string
+      openrouter_api_key:
+        example: sk-or-123
+        type: string
+      simli_api_key:
+        example: SIMLI123
+        type: string
+      telnyx_api_key:
+        example: KEY123
+        type: string
+      tenant_id:
+        example: tenant-123
+        type: string
+      twilio_account_sid:
+        example: AC12345
+        type: string
+      twilio_auth_token:
+        example: secret
+        type: string
+      webhooks:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.VoiceCampaignRequest:
+    properties:
+      max_jitter_sec:
+        description: Anti-spam delay jitter
+        example: 15
+        type: integer
+      min_jitter_sec:
+        description: Anti-spam delay jitter
+        example: 5
+        type: integer
+      name:
+        example: Q3 Renewal Campaign
+        type: string
+      prompt:
+        type: string
+      target_numbers:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    - prompt
+    - target_numbers
+    type: object
+  dto.VoiceOutboundRequest:
+    properties:
+      prompt:
+        example: You are a friendly appointment reminder.
+        type: string
+      target_number:
+        example: "+15550199"
+        type: string
+    required:
+    - prompt
+    - target_number
+    type: object
+  dto.WhatsAppCampaignRequest:
+    properties:
+      campaign_name:
+        type: string
+      recipients:
+        items:
+          type: string
+        type: array
+      template_name:
+        example: order_update_hsm
+        type: string
+    required:
+    - campaign_name
+    - recipients
+    - template_name
+    type: object
+  dto.WhatsAppSendRequest:
+    properties:
+      media_url:
+        type: string
+      message:
+        example: Hello from WhatsApp!
+        type: string
+      recipient_phone:
+        example: "+15550199"
+        type: string
+    required:
+    - message
+    - recipient_phone
+    type: object
   engine.Agent:
     properties:
       fallbackChain:
@@ -123,6 +359,79 @@ info:
   title: Vocal Engine AI Agent Microservice API
   version: "1.0"
 paths:
+  /api/v1/admin/tenants/{tenant_id}/branding:
+    get:
+      description: Returns custom domain, logo, display name, and voice default settings
+      parameters:
+      - description: Tenant Identifier
+        in: path
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TenantBrandingDTO'
+      summary: Get Tenant White-Label Branding
+      tags:
+      - Admin - Tenant Configuration
+  /api/v1/admin/tenants/{tenant_id}/config:
+    get:
+      description: Returns the active provider API keys (Twilio, Telnyx, Simli, OpenRouter,
+        ElevenLabs, AssemblyAI, LiveKit) for the tenant
+      parameters:
+      - description: Tenant Identifier
+        in: path
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TenantConfigDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/telephony.ErrorResponse'
+      summary: Get Tenant BYOK Configuration
+      tags:
+      - Admin - Tenant Configuration
+    put:
+      consumes:
+      - application/json
+      description: Updates active API keys and endpoints for a tenant
+      parameters:
+      - description: Tenant Identifier
+        in: path
+        name: tenant_id
+        required: true
+        type: string
+      - description: Tenant BYOK Configuration Specs
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TenantConfigDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TenantConfigDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/telephony.ErrorResponse'
+      summary: Update Tenant BYOK Configuration
+      tags:
+      - Admin - Tenant Configuration
   /api/v1/agents:
     get:
       description: Retrieves all voice agent profiles currently registered in the
@@ -225,4 +534,352 @@ paths:
       summary: Trigger an outbound voice call
       tags:
       - Telephony
+  /api/v1/gateway/avatar/live:
+    post:
+      consumes:
+      - application/json
+      description: Generates a WebRTC join token for interactive real-time avatar
+        streams (Simli/MuseTalk)
+      parameters:
+      - description: Session Specs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AvatarLiveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start Live WebRTC Avatar Session
+      tags:
+      - Gateway - Avatar
+  /api/v1/gateway/avatar/offline:
+    post:
+      consumes:
+      - application/json
+      description: Requests on-the-fly MP4 video generation metered strictly per second
+      parameters:
+      - description: Video Specs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AvatarOfflineRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Request Offline Raw MP4 Video Generation
+      tags:
+      - Gateway - Avatar
+  /api/v1/gateway/brain/chat:
+    post:
+      consumes:
+      - application/json
+      description: Handles text processing for SMS, WhatsApp, and Webchat via LLM
+        with CRM context
+      parameters:
+      - description: Chat Request Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BrainChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BrainChatResponse'
+      summary: Process Multichannel LLM Chat
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/report:
+    post:
+      description: Fetches structured LeMUR v3 reports including BANT scores and Action
+        Items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve LeMUR v3 Meeting Report
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/meeting/bot:
+    post:
+      consumes:
+      - application/json
+      description: Dispatches an autonomous Recall.ai AI bot to join external video
+        calls
+      parameters:
+      - description: Bot Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MeetingBotRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deploy Meeting Bot
+      tags:
+      - Gateway - Meeting
+  /api/v1/gateway/meeting/schedule:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new interactive WebRTC meeting room
+      parameters:
+      - description: Room Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MeetingScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Schedule WebRTC Meeting Room
+      tags:
+      - Gateway - Meeting
+  /api/v1/gateway/messaging/campaign:
+    post:
+      consumes:
+      - application/json
+      description: Dispatches templated SMS messages with contact variable merging
+        and STOP opt-out enforcement
+      parameters:
+      - description: Campaign Specs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MessageCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Launch Mass SMS/MMS Campaign
+      tags:
+      - Gateway - Messaging
+  /api/v1/gateway/messaging/send:
+    post:
+      consumes:
+      - application/json
+      description: Dispatches an individual SMS or MMS message
+      parameters:
+      - description: Message Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MessageSendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send Individual SMS/MMS
+      tags:
+      - Gateway - Messaging
+  /api/v1/gateway/messaging/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Webhook receiving inbound SMS/MMS messages and delivery receipts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Messaging Inbound Webhook
+      tags:
+      - Gateway - Messaging
+  /api/v1/gateway/voice/campaign:
+    post:
+      consumes:
+      - application/json
+      description: Dispatches voice calls sequentially with randomized jitter delays
+        to prevent carrier spam detection
+      parameters:
+      - description: Campaign Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VoiceCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Launch Anti-Spam Voice Campaign
+      tags:
+      - Gateway - Voice
+  /api/v1/gateway/voice/inbound/webhook:
+    post:
+      description: Receives webhook requests for incoming calls and routes them to
+        the agent stream
+      produces:
+      - text/xml
+      responses:
+        "200":
+          description: TwiML XML Response
+          schema:
+            type: string
+      summary: Handle Inbound Telephony Webhook
+      tags:
+      - Gateway - Voice
+  /api/v1/gateway/voice/outbound:
+    post:
+      consumes:
+      - application/json
+      description: Initiates an outbound voice call using tenant's BYOK credentials
+      parameters:
+      - description: Call Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VoiceOutboundRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Trigger Individual Outbound Call
+      tags:
+      - Gateway - Voice
+  /api/v1/gateway/whatsapp/campaign:
+    post:
+      consumes:
+      - application/json
+      description: Dispatches template-approved WhatsApp messages to a list of recipients
+      parameters:
+      - description: Campaign Specs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WhatsAppCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Launch Mass WhatsApp HSM Campaign
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/send:
+    post:
+      consumes:
+      - application/json
+      description: Routes individual WhatsApp message to the tenant's Evolution Go
+        server
+      parameters:
+      - description: Message Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WhatsAppSendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send Individual WhatsApp Message
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/templates:
+    get:
+      description: Returns Meta-approved message templates for the tenant's account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List Approved WhatsApp Templates
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Webhook endpoint receiving inbound WhatsApp messages and status
+        updates from Evolution Go
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: WhatsApp Inbound Webhook
+      tags:
+      - Gateway - WhatsApp
 swagger: "2.0"

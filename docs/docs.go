@@ -24,6 +24,115 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/admin/tenants/{tenant_id}/branding": {
+            "get": {
+                "description": "Returns custom domain, logo, display name, and voice default settings",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Tenant Configuration"
+                ],
+                "summary": "Get Tenant White-Label Branding",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant Identifier",
+                        "name": "tenant_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TenantBrandingDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/tenants/{tenant_id}/config": {
+            "get": {
+                "description": "Returns the active provider API keys (Twilio, Telnyx, Simli, OpenRouter, ElevenLabs, AssemblyAI, LiveKit) for the tenant",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Tenant Configuration"
+                ],
+                "summary": "Get Tenant BYOK Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant Identifier",
+                        "name": "tenant_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TenantConfigDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/telephony.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates active API keys and endpoints for a tenant",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Tenant Configuration"
+                ],
+                "summary": "Update Tenant BYOK Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tenant Identifier",
+                        "name": "tenant_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tenant BYOK Configuration Specs",
+                        "name": "config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TenantConfigDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TenantConfigDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/telephony.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/agents": {
             "get": {
                 "description": "Retrieves all voice agent profiles currently registered in the system",
@@ -172,9 +281,865 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/gateway/avatar/live": {
+            "post": {
+                "description": "Generates a WebRTC join token for interactive real-time avatar streams (Simli/MuseTalk)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Avatar"
+                ],
+                "summary": "Start Live WebRTC Avatar Session",
+                "parameters": [
+                    {
+                        "description": "Session Specs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AvatarLiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/avatar/offline": {
+            "post": {
+                "description": "Requests on-the-fly MP4 video generation metered strictly per second",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Avatar"
+                ],
+                "summary": "Request Offline Raw MP4 Video Generation",
+                "parameters": [
+                    {
+                        "description": "Video Specs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AvatarOfflineRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/brain/chat": {
+            "post": {
+                "description": "Handles text processing for SMS, WhatsApp, and Webchat via LLM with CRM context",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Process Multichannel LLM Chat",
+                "parameters": [
+                    {
+                        "description": "Chat Request Data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BrainChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BrainChatResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/brain/report": {
+            "post": {
+                "description": "Fetches structured LeMUR v3 reports including BANT scores and Action Items",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Retrieve LeMUR v3 Meeting Report",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/meeting/bot": {
+            "post": {
+                "description": "Dispatches an autonomous Recall.ai AI bot to join external video calls",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Meeting"
+                ],
+                "summary": "Deploy Meeting Bot",
+                "parameters": [
+                    {
+                        "description": "Bot Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MeetingBotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/meeting/schedule": {
+            "post": {
+                "description": "Creates a new interactive WebRTC meeting room",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Meeting"
+                ],
+                "summary": "Schedule WebRTC Meeting Room",
+                "parameters": [
+                    {
+                        "description": "Room Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MeetingScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/messaging/campaign": {
+            "post": {
+                "description": "Dispatches templated SMS messages with contact variable merging and STOP opt-out enforcement",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Messaging"
+                ],
+                "summary": "Launch Mass SMS/MMS Campaign",
+                "parameters": [
+                    {
+                        "description": "Campaign Specs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/messaging/send": {
+            "post": {
+                "description": "Dispatches an individual SMS or MMS message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Messaging"
+                ],
+                "summary": "Send Individual SMS/MMS",
+                "parameters": [
+                    {
+                        "description": "Message Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageSendRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/messaging/webhook": {
+            "post": {
+                "description": "Webhook receiving inbound SMS/MMS messages and delivery receipts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Messaging"
+                ],
+                "summary": "Messaging Inbound Webhook",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/voice/campaign": {
+            "post": {
+                "description": "Dispatches voice calls sequentially with randomized jitter delays to prevent carrier spam detection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Voice"
+                ],
+                "summary": "Launch Anti-Spam Voice Campaign",
+                "parameters": [
+                    {
+                        "description": "Campaign Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VoiceCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/voice/inbound/webhook": {
+            "post": {
+                "description": "Receives webhook requests for incoming calls and routes them to the agent stream",
+                "produces": [
+                    "text/xml"
+                ],
+                "tags": [
+                    "Gateway - Voice"
+                ],
+                "summary": "Handle Inbound Telephony Webhook",
+                "responses": {
+                    "200": {
+                        "description": "TwiML XML Response",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/voice/outbound": {
+            "post": {
+                "description": "Initiates an outbound voice call using tenant's BYOK credentials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Voice"
+                ],
+                "summary": "Trigger Individual Outbound Call",
+                "parameters": [
+                    {
+                        "description": "Call Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VoiceOutboundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/campaign": {
+            "post": {
+                "description": "Dispatches template-approved WhatsApp messages to a list of recipients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "Launch Mass WhatsApp HSM Campaign",
+                "parameters": [
+                    {
+                        "description": "Campaign Specs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WhatsAppCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/send": {
+            "post": {
+                "description": "Routes individual WhatsApp message to the tenant's Evolution Go server",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "Send Individual WhatsApp Message",
+                "parameters": [
+                    {
+                        "description": "Message Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WhatsAppSendRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/templates": {
+            "get": {
+                "description": "Returns Meta-approved message templates for the tenant's account",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "List Approved WhatsApp Templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/webhook": {
+            "post": {
+                "description": "Webhook endpoint receiving inbound WhatsApp messages and status updates from Evolution Go",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "WhatsApp Inbound Webhook",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.AvatarLiveRequest": {
+            "type": "object",
+            "required": [
+                "face_url"
+            ],
+            "properties": {
+                "face_url": {
+                    "type": "string",
+                    "example": "https://acme.com/avatar.png"
+                },
+                "voice_id": {
+                    "type": "string",
+                    "example": "alloy"
+                }
+            }
+        },
+        "dto.AvatarOfflineRequest": {
+            "type": "object",
+            "required": [
+                "face_url",
+                "script_text"
+            ],
+            "properties": {
+                "face_url": {
+                    "type": "string"
+                },
+                "script_text": {
+                    "type": "string"
+                },
+                "voice_id": {
+                    "type": "string",
+                    "example": "alloy"
+                }
+            }
+        },
+        "dto.BrainChatRequest": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "channel": {
+                    "description": "whatsapp, sms, webchat",
+                    "type": "string",
+                    "example": "whatsapp"
+                },
+                "context_crm": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Hello, what is my order status?"
+                }
+            }
+        },
+        "dto.BrainChatResponse": {
+            "type": "object",
+            "properties": {
+                "model_used": {
+                    "type": "string",
+                    "example": "openrouter/gpt-4o"
+                },
+                "reply": {
+                    "type": "string",
+                    "example": "Your order #1234 is currently in transit."
+                }
+            }
+        },
+        "dto.MeetingBotRequest": {
+            "type": "object",
+            "required": [
+                "meeting_url"
+            ],
+            "properties": {
+                "bot_name": {
+                    "type": "string",
+                    "example": "Patter AI Assistant"
+                },
+                "meeting_url": {
+                    "type": "string",
+                    "example": "https://meet.google.com/abc-defg-hij"
+                }
+            }
+        },
+        "dto.MeetingScheduleRequest": {
+            "type": "object",
+            "required": [
+                "room_name"
+            ],
+            "properties": {
+                "provider": {
+                    "description": "livekit_webrtc, dyte",
+                    "type": "string",
+                    "example": "livekit_webrtc"
+                },
+                "room_name": {
+                    "type": "string",
+                    "example": "acme-strategy-sync"
+                }
+            }
+        },
+        "dto.MessageCampaignRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "recipients",
+                "template_text"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "template_text": {
+                    "type": "string",
+                    "example": "Hello {{first_name}}, special offer for {{company}}!"
+                },
+                "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.MessageSendRequest": {
+            "type": "object",
+            "required": [
+                "text",
+                "to_number"
+            ],
+            "properties": {
+                "media_url": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "Your verification code is 4920"
+                },
+                "to_number": {
+                    "type": "string",
+                    "example": "+15550199"
+                }
+            }
+        },
+        "dto.TenantBrandingDTO": {
+            "type": "object",
+            "properties": {
+                "custom_domain": {
+                    "type": "string",
+                    "example": "ai.acme.com"
+                },
+                "default_voice": {
+                    "type": "string",
+                    "example": "alloy"
+                },
+                "display_name": {
+                    "type": "string",
+                    "example": "Acme AI Assistant"
+                },
+                "logo_url": {
+                    "type": "string",
+                    "example": "https://acme.com/logo.png"
+                },
+                "primary_color": {
+                    "type": "string",
+                    "example": "#3B82F6"
+                },
+                "tenant_id": {
+                    "type": "string",
+                    "example": "tenant-123"
+                }
+            }
+        },
+        "dto.TenantConfigDTO": {
+            "type": "object",
+            "properties": {
+                "assemblyai_api_key": {
+                    "type": "string",
+                    "example": "assembly123"
+                },
+                "elevenlabs_api_key": {
+                    "type": "string",
+                    "example": "eleven123"
+                },
+                "evolution_go_server_url": {
+                    "type": "string",
+                    "example": "http://evolution-go:8080"
+                },
+                "livekit_api_key": {
+                    "type": "string",
+                    "example": "lk_key"
+                },
+                "livekit_api_secret": {
+                    "type": "string",
+                    "example": "lk_secret"
+                },
+                "livekit_host": {
+                    "type": "string",
+                    "example": "wss://livekit.example.com"
+                },
+                "openrouter_api_key": {
+                    "type": "string",
+                    "example": "sk-or-123"
+                },
+                "simli_api_key": {
+                    "type": "string",
+                    "example": "SIMLI123"
+                },
+                "telnyx_api_key": {
+                    "type": "string",
+                    "example": "KEY123"
+                },
+                "tenant_id": {
+                    "type": "string",
+                    "example": "tenant-123"
+                },
+                "twilio_account_sid": {
+                    "type": "string",
+                    "example": "AC12345"
+                },
+                "twilio_auth_token": {
+                    "type": "string",
+                    "example": "secret"
+                },
+                "webhooks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.VoiceCampaignRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "prompt",
+                "target_numbers"
+            ],
+            "properties": {
+                "max_jitter_sec": {
+                    "description": "Anti-spam delay jitter",
+                    "type": "integer",
+                    "example": 15
+                },
+                "min_jitter_sec": {
+                    "description": "Anti-spam delay jitter",
+                    "type": "integer",
+                    "example": 5
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Q3 Renewal Campaign"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "target_numbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.VoiceOutboundRequest": {
+            "type": "object",
+            "required": [
+                "prompt",
+                "target_number"
+            ],
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "example": "You are a friendly appointment reminder."
+                },
+                "target_number": {
+                    "type": "string",
+                    "example": "+15550199"
+                }
+            }
+        },
+        "dto.WhatsAppCampaignRequest": {
+            "type": "object",
+            "required": [
+                "campaign_name",
+                "recipients",
+                "template_name"
+            ],
+            "properties": {
+                "campaign_name": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "template_name": {
+                    "type": "string",
+                    "example": "order_update_hsm"
+                }
+            }
+        },
+        "dto.WhatsAppSendRequest": {
+            "type": "object",
+            "required": [
+                "message",
+                "recipient_phone"
+            ],
+            "properties": {
+                "media_url": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Hello from WhatsApp!"
+                },
+                "recipient_phone": {
+                    "type": "string",
+                    "example": "+15550199"
+                }
+            }
+        },
         "engine.Agent": {
             "type": "object",
             "properties": {
