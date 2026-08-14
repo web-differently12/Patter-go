@@ -56,14 +56,36 @@ func main() {
 		publisher = &mockPublisher{}
 	}
 
-	// 3. Initialize Domain Handlers and Controllers
+	// 3. Initialize Shared State Repositories
+	agentRepo := engine.NewMemoryAgentRepository()
+
+	// Seed dummy agent for testing
+	dummyAgent := &engine.Agent{
+		ID:             "agent-receptionist",
+		Name:           "Acme reception voice agent",
+		TenantID:       "tenant-1",
+		Mode:           engine.ModeRealtime,
+		SystemPrompt:   "You are a welcoming office secretary receptionist at Acme Corporation.",
+		FirstMessage:   "Hello! Thank you for calling Acme. How can I guide you today?",
+		Voice:          "alloy",
+		STTProviderID:  "deepgram",
+		TTSProviderID:  "elevenlabs",
+		LLMProviderID:  "openai",
+		FallbackChain:  []string{"groq", "anthropic"},
+		VADSensitivity: 0.25,
+		Tools:          []engine.AgentTool{},
+	}
+	_ = agentRepo.CreateAgent(context.Background(), dummyAgent)
+
+	// 4. Initialize Domain Handlers and Controllers
 	callController := telephony.NewCallController(cfg)
+	agentController := telephony.NewAgentController(agentRepo)
 	streamEngine := engine.NewStreamEngine(cfg, publisher)
 
-	// 4. Initialize Router
-	router := routes.SetupRouter(callController, streamEngine)
+	// 5. Initialize Router with newly added controllers
+	router := routes.SetupRouter(callController, agentController, streamEngine)
 
-	// 5. Configure Graceful HTTP Server
+	// 6. Configure Graceful HTTP Server
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,
 		Handler: router,
