@@ -82,9 +82,9 @@ func (po *PipelineOrchestrator) RunStreamSession(ctx context.Context, agent *Age
 				if isSpeaking {
 					// Audio chunk has live user voice, forward to STT engine
 					select {
-					case sttInput <- chunk:
 					case <-ctx.Done():
 						return
+					case sttInput <- chunk:
 					}
 				}
 			}

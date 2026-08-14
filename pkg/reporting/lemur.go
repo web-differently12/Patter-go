@@ -147,9 +147,10 @@ func (s *AssemblyAILeMURService) ProcessAndDispatchReport(ctx context.Context, t
 		return nil, fmt.Errorf("failed to marshal meeting report: %w", err)
 	}
 
-	// Asynchronous Dispatch: Publish report payload to RabbitMQ queue for NestJS CRM sync
+	// Asynchronous Dispatch: Publish report payload to RabbitMQ queue for NestJS CRM sync using detached background context
+	bgCtx := context.WithoutCancel(ctx)
 	go func() {
-		err := s.publisher.PublishToolCall(ctx, tenantID, meetingID, "elite_meeting_report", json.RawMessage(reportPayload))
+		err := s.publisher.PublishToolCall(bgCtx, tenantID, meetingID, "elite_meeting_report", json.RawMessage(reportPayload))
 		if err != nil {
 			log.Printf("[LeMUR v3] Error publishing meeting report to RabbitMQ: %v", err)
 		} else {
