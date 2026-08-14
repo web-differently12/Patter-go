@@ -1,0 +1,80 @@
+basePath: /
+definitions:
+  telephony.ErrorResponse:
+    properties:
+      error:
+        example: invalid request body
+        type: string
+    type: object
+  telephony.OutboundCallRequest:
+    properties:
+      agentPrompt:
+        example: You are a friendly assistant.
+        type: string
+      targetNumber:
+        example: "+15550199"
+        type: string
+      tenantId:
+        example: tenant-123
+        type: string
+    required:
+    - agentPrompt
+    - targetNumber
+    - tenantId
+    type: object
+  telephony.OutboundCallResponse:
+    properties:
+      callSid:
+        example: CAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        type: string
+      status:
+        example: queued
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Microservice engine handling low latency bidirectionnal Twilio-to-LLM
+    audio routing and asynchronous tool calling.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Vocal Engine AI Agent Microservice API
+  version: "1.0"
+paths:
+  /api/v1/call/outbound:
+    post:
+      consumes:
+      - application/json
+      description: Initiates an outbound call via Twilio and connects the voice channel
+        to the WebSocket stream
+      parameters:
+      - description: Outbound Call Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/telephony.OutboundCallRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/telephony.OutboundCallResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/telephony.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/telephony.ErrorResponse'
+      summary: Trigger an outbound voice call
+      tags:
+      - Telephony
+swagger: "2.0"
