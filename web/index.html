@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patter Core Engine — Dashboard White-Label & Campaigns</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100" x-data="dashboardApp()" x-init="initDashboard()">
+  <div class="min-h-full flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-500/20">
+            <i class="fa-solid fa-phone-volume"></i>
+          </div>
+          <div>
+            <span class="text-lg font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">Patter Core Engine</span>
+            <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">Evolution Go v1.26</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Tenant Selector -->
+          <div class="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+            <i class="fa-solid fa-building text-slate-400 text-sm"></i>
+            <span class="text-xs font-medium text-slate-300">Tenant:</span>
+            <input type="text" x-model="tenantId" @change="refreshData()" class="bg-transparent text-xs font-bold text-sky-400 focus:outline-none w-28">
+          </div>
+
+          <a href="/swagger/index.html" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 transition text-xs font-semibold">
+            <i class="fa-solid fa-code"></i>
+            <span>Swagger API</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+      <!-- Navigation Tabs -->
+      <div class="flex border-b border-slate-800 space-x-8">
+        <button @click="activeTab = 'campaigns'" :class="activeTab === 'campaigns' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Moteur de Campagnes</span>
+        </button>
+        <button @click="activeTab = 'whatsapp'" :class="activeTab === 'whatsapp' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
+          <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+          <span>Sessions WhatsApp White-Label</span>
+        </button>
+        <button @click="activeTab = 'instances'" :class="activeTab === 'instances' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-server"></i>
+          <span>Instances Multi-Tenant</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: OMNICHANNEL CAMPAIGN ENGINE -->
+      <div x-show="activeTab === 'campaigns'" class="space-y-8">
+
+        <!-- Header Banner & Create Campaign Button -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/40 p-6 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bullhorn text-sky-400"></i>
+              Moteur de Campagnes Omnicanales
+            </h2>
+            <p class="text-sm text-slate-400 mt-1">
+              Cadenceur Jitter Anti-Spam (±30%), Round-Robin multi-sessions & résolution d'audience dynamique.
+            </p>
+          </div>
+          <button @click="showCreateModal = true" class="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sky-500/20 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Nouvelle Campagne</span>
+          </button>
+        </div>
+
+        <!-- Live Campaigns List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <template x-for="cmp in campaigns" :key="cmp.campaign_id">
+            <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 space-y-4 hover:border-slate-700 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md"
+                  :class="{
+                    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': cmp.status === 'RUNNING' || cmp.status === 'COMPLETED',
+                    'bg-amber-500/10 text-amber-400 border border-amber-500/20': cmp.status === 'PAUSED' || cmp.status === 'SCHEDULED',
+                    'bg-slate-800 text-slate-400': cmp.status === 'DRAFT'
+                  }" x-text="cmp.status"></span>
+                <span class="text-xs text-slate-500 font-mono" x-text="cmp.campaign_id"></span>
+              </div>
+
+              <div>
+                <h3 class="text-lg font-bold text-white" x-text="cmp.name"></h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300" x-text="cmp.channel"></span>
+                  <span class="text-xs text-slate-400" x-text="cmp.total_contacts + ' contacts'"></span>
+                </div>
+              </div>
+
+              <!-- Metrics Counters -->
+              <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-center">
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Envoyés</span>
+                  <span class="text-sm font-bold text-sky-400" x-text="cmp.sent_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Livrés</span>
+                  <span class="text-sm font-bold text-emerald-400" x-text="cmp.delivered_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Lus</span>
+                  <span class="text-sm font-bold text-indigo-400" x-text="cmp.read_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Échecs</span>
+                  <span class="text-sm font-bold text-rose-400" x-text="cmp.failed_count"></span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <button x-show="cmp.status === 'RUNNING'" @click="pauseCampaign(cmp.campaign_id)" class="px-3 py-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold rounded-lg border border-amber-500/20 transition">
+                  <i class="fa-solid fa-pause mr-1"></i> Pause
+                </button>
+                <button x-show="cmp.status === 'PAUSED'" @click="resumeCampaign(cmp.campaign_id)" class="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold rounded-lg border border-emerald-500/20 transition">
+                  <i class="fa-solid fa-play mr-1"></i> Reprendre
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- TAB 2: WHATSAPP WHITE-LABEL SESSIONS -->
+      <div x-show="activeTab === 'whatsapp'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+                Sessions WhatsApp (Moteur Whatsmeow / Evolution Go Proxy)
+              </h2>
+              <p class="text-sm text-slate-400">Génération de QR Code marque blanche et gestion des clés de session isolation tenant.</p>
+            </div>
+            <button @click="connectWhatsApp()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-qrcode"></i>
+              <span>Connecter Nouvelle Session</span>
+            </button>
+          </div>
+
+          <!-- Session List / QR Code View -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Aperçu QR Code Authentification</h3>
+              <div class="flex flex-col items-center justify-center p-6 bg-slate-900 rounded-xl border border-dashed border-slate-700">
+                <template x-if="qrCodeData">
+                  <div class="text-center space-y-3">
+                    <div class="w-48 h-48 bg-white p-2 rounded-xl mx-auto flex items-center justify-center shadow-2xl">
+                      <i class="fa-solid fa-qrcode text-8xl text-slate-900"></i>
+                    </div>
+                    <p class="text-xs text-emerald-400 font-mono font-bold" x-text="'Session: ' + qrCodeData.session_name"></p>
+                    <p class="text-xs text-slate-400" x-text="'Code d\'appairage: ' + qrCodeData.pairing_code"></p>
+                  </div>
+                </template>
+                <template x-if="!qrCodeData">
+                  <p class="text-xs text-slate-500">Cliquez sur "Connecter Nouvelle Session" pour générer un QR code.</p>
+                </template>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Sessions Actives Tenant</h3>
+              <div class="space-y-3">
+                <template x-for="sess in waSessions" :key="sess.session_name">
+                  <div class="p-3 bg-slate-900 rounded-lg flex items-center justify-between border border-slate-800">
+                    <div class="flex items-center gap-3">
+                      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+                      <div>
+                        <span class="text-sm font-bold text-white block" x-text="sess.session_name"></span>
+                        <span class="text-xs text-slate-400" x-text="sess.phone_number || 'Numéro lié'"></span>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="sess.state"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: INSTANCES -->
+      <div x-show="activeTab === 'instances'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <h2 class="text-lg font-bold text-white">Instances White-Label Isolées</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="inst in instances" :key="inst.instance_id">
+              <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-sky-400" x-text="inst.instance_name"></span>
+                  <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-semibold" x-text="inst.status"></span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono" x-text="'ID: ' + inst.instance_id"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- CREATE CAMPAIGN MODAL -->
+    <div x-show="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-cloak>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane text-sky-400"></i>
+            Lancer une Campagne Omnicanale
+          </h3>
+          <button @click="showCreateModal = false" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nom de la Campagne</label>
+            <input type="text" x-model="newCampaign.name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Canal de Diffusion</label>
+              <select x-model="newCampaign.channel" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+                <option value="WHATSAPP">WhatsApp (Evolution Go)</option>
+                <option value="SMS">SMS / MMS Multi-Providers</option>
+                <option value="VOICE">Voice Call Dialer (Agent IA)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Jitter Anti-Spam (Base Duree Sec)</label>
+              <input type="number" x-model.number="newCampaign.random_delay_sec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Message (Variables: {{first_name}}, {{company}})</label>
+            <textarea x-model="newCampaign.message_content" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <button @click="showCreateModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700">Annuler</button>
+          <button @click="submitCampaign()" class="px-4 py-2 bg-sky-600 text-white text-xs font-semibold rounded-xl hover:bg-sky-500 shadow-lg shadow-sky-600/20">Déclencher la Campagne</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function dashboardApp() {
+      return {
+        tenantId: 'default_tenant',
+        activeTab: 'campaigns',
+        showCreateModal: false,
+        campaigns: [],
+        waSessions: [],
+        instances: [],
+        qrCodeData: null,
+        newCampaign: {
+          name: 'Campagne Offre Spéciale Client',
+          channel: 'WHATSAPP',
+          session_names: ['default_wa_1', 'default_wa_2'],
+          message_content: 'Bonjour {{first_name}}, découvrez l\'offre exclusive de {{company}} !',
+          random_delay_sec: 15,
+          start_immediately: true,
+          audience_filter: {
+            match_logic: 'AND',
+            contact_category_ids: ['VIP'],
+            excluded_tags: ['opted_out']
+          }
+        },
+        async initDashboard() {
+          await this.refreshData();
+        },
+        async refreshData() {
+          await Promise.all([
+            this.fetchCampaigns(),
+            this.fetchWASessions(),
+            this.fetchInstances()
+          ]);
+        },
+        async fetchCampaigns() {
+          try {
+            const res = await fetch('/api/v1/gateway/campaigns', {
+              headers: { 'X-Tenant-ID': this.tenantId }
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.campaigns = data.data || [];
+            }
+          } catch (e) {
+            console.error('Fetch campaigns error:', e);
+          }
+        },
+        async fetchWASessions() {
+          try {
+            const res = await fetch('/api/v1/gateway/whatsapp/sessions', {
+              headers: { 'X-Tenant-ID': this.tenantId }
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.waSessions = data.data || [];
+            }
+          } catch (e) {
+            console.error('Fetch sessions error:', e);
+          }
+        },
+        async fetchInstances() {
+          try {
+            const res = await fetch('/api/v1/gateway/instances', {
+              headers: { 'X-Tenant-ID': this.tenantId }
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.instances = data.data || [];
+            }
+          } catch (e) {
+            console.error('Fetch instances error:', e);
+          }
+        },
+        async connectWhatsApp() {
+          try {
+            const res = await fetch('/api/v1/gateway/whatsapp/connect', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Tenant-ID': this.tenantId
+              },
+              body: JSON.stringify({ session_name: 'wa_session_' + Math.floor(Math.random() * 1000) })
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.qrCodeData = data.data;
+              await this.fetchWASessions();
+            }
+          } catch (e) {
+            console.error('Connect error:', e);
+          }
+        },
+        async submitCampaign() {
+          try {
+            const res = await fetch('/api/v1/gateway/campaigns', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Tenant-ID': this.tenantId
+              },
+              body: JSON.stringify(this.newCampaign)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.showCreateModal = false;
+              await this.fetchCampaigns();
+            }
+          } catch (e) {
+            console.error('Submit campaign error:', e);
+          }
+        },
+        async pauseCampaign(id) {
+          await fetch(`/api/v1/gateway/campaigns/${id}/pause`, {
+            method: 'POST',
+            headers: { 'X-Tenant-ID': this.tenantId }
+          });
+          await this.fetchCampaigns();
+        },
+        async resumeCampaign(id) {
+          await fetch(`/api/v1/gateway/campaigns/${id}/resume`, {
+            method: 'POST',
+            headers: { 'X-Tenant-ID': this.tenantId }
+          });
+          await this.fetchCampaigns();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
