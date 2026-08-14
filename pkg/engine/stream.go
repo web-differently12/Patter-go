@@ -65,6 +65,9 @@ type RealtimeEvent struct {
 	OutputItem     *RealtimeItem   `json:"output_item,omitempty"`
 	FunctionCallID string          `json:"function_call_id,omitempty"`
 	Response       *RealtimeResp   `json:"response,omitempty"`
+	CallID         string          `json:"call_id,omitempty"`
+	Name           string          `json:"name,omitempty"`
+	Arguments      string          `json:"arguments,omitempty"`
 }
 
 type RealtimeItem struct {
@@ -220,8 +223,15 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 					}
 				case "media":
 					if event.Media != nil && event.Media.Payload != "" {
+						decodedMaxLen := base64.StdEncoding.DecodedLen(len(event.Media.Payload))
+
 						// Retrieve buffer from sync.Pool to reduce garbage collection overhead
 						buf := bufferPool.Get().([]byte)
+
+						if decodedMaxLen > len(buf) {
+							// If for any reason the payload is larger than our pooled buffer, allocate dynamically to avoid panic
+							buf = make([]byte, decodedMaxLen)
+						}
 
 						decodedLen, err := base64.StdEncoding.Decode(buf, []byte(event.Media.Payload))
 						if err != nil {
@@ -274,6 +284,14 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 
 		log.Println("[Goroutine 2] Connected to Realtime AI Agent.")
 
+		// Thread-safe helper to write message to OpenAI Realtime websocket connection
+		var rtWriteMu sync.Mutex
+		safeWriteRtMsg := func(messageType int, payload []byte) error {
+			rtWriteMu.Lock()
+			defer rtWriteMu.Unlock()
+			return rtConn.WriteMessage(messageType, payload)
+		}
+
 		// Configure the Realtime Session parameters (modalities, voice, system instructions)
 		initSessionEvent := SessionUpdateEvent{
 			Type: "session.update",
@@ -305,7 +323,7 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 
 		sessionPayload, err := json.Marshal(initSessionEvent)
 		if err == nil {
-			rtConn.WriteMessage(websocket.TextMessage, sessionPayload)
+			safeWriteRtMsg(websocket.TextMessage, sessionPayload)
 		}
 
 		// Sub-goroutine inside Goroutine 2 to read user audio chunks from channel and stream them to Realtime WebSocket
@@ -330,7 +348,7 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 						continue
 					}
 
-					err = rtConn.WriteMessage(websocket.TextMessage, payload)
+					err = safeWriteRtMsg(websocket.TextMessage, payload)
 					if err != nil {
 						log.Printf("[Goroutine 2 Sub] Error sending audio to Realtime API: %v", err)
 						return
@@ -365,6 +383,15 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 					default:
 					}
 
+					// CRITICAL: Send response.cancel client event to the Realtime API to stop speech generation instantly
+					cancelEvent := map[string]interface{}{
+						"type": "response.cancel",
+					}
+					cancelPayload, err := json.Marshal(cancelEvent)
+					if err == nil {
+						_ = safeWriteRtMsg(websocket.TextMessage, cancelPayload)
+					}
+
 				case "response.audio.delta":
 					if rtEvent.Delta != "" {
 						// Send AI response voice chunk directly to Twilio outbound voice channel
@@ -377,17 +404,17 @@ func (se *StreamEngine) HandleTwilioStream(c *gin.Context) {
 
 				case "response.function_call_arguments.done":
 					// IA Requested a tool execution
-					if rtEvent.FunctionCallID != "" && rtEvent.Item != nil {
+					if rtEvent.Name != "" && rtEvent.Arguments != "" {
 						_, cSID := getSIDs()
 
 						// Launch an asynchronous goroutine to process the tool call publishing
 						// to avoid blocking the real-time audio pipeline.
-						go func(tID, callID, toolName string, args []byte) {
+						go func(tID, callID, toolName string, args string) {
 							err := se.publisher.PublishToolCall(ctx, tID, callID, toolName, json.RawMessage(args))
 							if err != nil {
 								log.Printf("[Tool Call] Failed to publish tool call: %v", err)
 							}
-						}(tenantID, cSID, rtEvent.Item.Name, []byte(rtEvent.Delta))
+						}(tenantID, cSID, rtEvent.Name, rtEvent.Arguments)
 					}
 				}
 			}

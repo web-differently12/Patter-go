@@ -70,7 +70,7 @@ func (cc *CallController) HandleOutboundCall(c *gin.Context) {
 	var req OutboundCallRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("invalid request body: %v", err)})
-		return;
+		return
 	}
 
 	// Dynamic callback URL which Twilio will invoke to fetch the TwiML.
