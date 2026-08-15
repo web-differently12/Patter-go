@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Omnichannel gateway and campaign engine (WhatsApp Evolution Go, Voice, SMS, AI Brain)",
+        "description": "Omnichannel gateway, campaign engine \u0026 Unified RAG Router (WhatsApp Evolution Go, Voice, SMS, AI Brain)",
         "title": "Patter Engine Gateway \u0026 Campaign Engine API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -64,6 +64,98 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/brain/rag/search": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Recherche RAG Unifiée avec règle d'escalade automatique",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres RAG",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.RAGSearchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/rag.SearchResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/brain/transfer": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Invoquer le skill de transfert vers un humain avec consentement oral",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Arguments de transfert",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.APIResponse"
                         }
                     }
                 }
@@ -818,6 +910,42 @@
         }
     },
     "definitions": {
+        "controller.RAGSearchRequest": {
+            "type": "object",
+            "required": [
+                "query"
+            ],
+            "properties": {
+                "call_sid": {
+                    "type": "string"
+                },
+                "config": {
+                    "$ref": "#/definitions/rag.KnowledgeBaseConfig"
+                },
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.TransferRequest": {
+            "type": "object",
+            "required": [
+                "call_sid",
+                "destination",
+                "raw_args"
+            ],
+            "properties": {
+                "call_sid": {
+                    "type": "string"
+                },
+                "destination": {
+                    "type": "string"
+                },
+                "raw_args": {
+                    "type": "string"
+                }
+            }
+        },
         "core.APIResponse": {
             "type": "object",
             "properties": {
@@ -1198,6 +1326,114 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "rag.FallbackTransferPolicy": {
+            "type": "object",
+            "properties": {
+                "confidence_threshold": {
+                    "description": "Ex: 0.75 (en dessous -\u003e transfert)",
+                    "type": "number"
+                },
+                "enable_auto_transfer": {
+                    "description": "Activer l'escalade vers un humain",
+                    "type": "boolean"
+                },
+                "hold_music_url": {
+                    "description": "Musique d'attente",
+                    "type": "string"
+                },
+                "transfer_destination": {
+                    "description": "Numéro E.164 ou SIP URI (+33612345678)",
+                    "type": "string"
+                },
+                "transfer_message": {
+                    "description": "Phrase prononcée avant de transférer",
+                    "type": "string"
+                },
+                "transfer_type": {
+                    "description": "\"WARM\" (accompagné) ou \"COLD\" (direct)",
+                    "type": "string"
+                }
+            }
+        },
+        "rag.KnowledgeBaseConfig": {
+            "type": "object",
+            "properties": {
+                "auth_header_key": {
+                    "type": "string"
+                },
+                "auth_header_value": {
+                    "type": "string"
+                },
+                "custom_server_url": {
+                    "description": "2. Custom Endpoint Config",
+                    "type": "string"
+                },
+                "fallback_transfer": {
+                    "description": "3. Règle d'Escalade \u0026 Auto-Transfert d'Appel",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rag.FallbackTransferPolicy"
+                        }
+                    ]
+                },
+                "google_vertex_config": {
+                    "description": "1. Google ADK / Vertex Search Config",
+                    "type": "object",
+                    "properties": {
+                        "datastore_id": {
+                            "type": "string"
+                        },
+                        "location": {
+                            "description": "\"global\" ou \"europe-west1\"",
+                            "type": "string"
+                        },
+                        "project_id": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "provider": {
+                    "$ref": "#/definitions/rag.KnowledgeBaseProvider"
+                },
+                "top_k": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rag.KnowledgeBaseProvider": {
+            "type": "string",
+            "enum": [
+                "builtin_pgvector",
+                "google_vertex_search",
+                "pinecone",
+                "qdrant",
+                "custom_endpoint"
+            ],
+            "x-enum-varnames": [
+                "ProviderBuiltInPGVector",
+                "ProviderGoogleVertex",
+                "ProviderPinecone",
+                "ProviderQdrant",
+                "ProviderCustomEndpoint"
+            ]
+        },
+        "rag.SearchResult": {
+            "type": "object",
+            "properties": {
+                "best_score": {
+                    "type": "number"
+                },
+                "chunks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transfer_needed": {
+                    "type": "boolean"
                 }
             }
         },

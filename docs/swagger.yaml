@@ -1,5 +1,29 @@
 basePath: /
 definitions:
+  controller.RAGSearchRequest:
+    properties:
+      call_sid:
+        type: string
+      config:
+        $ref: '#/definitions/rag.KnowledgeBaseConfig'
+      query:
+        type: string
+    required:
+    - query
+    type: object
+  controller.TransferRequest:
+    properties:
+      call_sid:
+        type: string
+      destination:
+        type: string
+      raw_args:
+        type: string
+    required:
+    - call_sid
+    - destination
+    - raw_args
+    type: object
   core.APIResponse:
     properties:
       data: {}
@@ -261,6 +285,81 @@ definitions:
     - prompt_template
     - target_phone_numbers
     type: object
+  rag.FallbackTransferPolicy:
+    properties:
+      confidence_threshold:
+        description: 'Ex: 0.75 (en dessous -> transfert)'
+        type: number
+      enable_auto_transfer:
+        description: Activer l'escalade vers un humain
+        type: boolean
+      hold_music_url:
+        description: Musique d'attente
+        type: string
+      transfer_destination:
+        description: Numéro E.164 ou SIP URI (+33612345678)
+        type: string
+      transfer_message:
+        description: Phrase prononcée avant de transférer
+        type: string
+      transfer_type:
+        description: '"WARM" (accompagné) ou "COLD" (direct)'
+        type: string
+    type: object
+  rag.KnowledgeBaseConfig:
+    properties:
+      auth_header_key:
+        type: string
+      auth_header_value:
+        type: string
+      custom_server_url:
+        description: 2. Custom Endpoint Config
+        type: string
+      fallback_transfer:
+        allOf:
+        - $ref: '#/definitions/rag.FallbackTransferPolicy'
+        description: 3. Règle d'Escalade & Auto-Transfert d'Appel
+      google_vertex_config:
+        description: 1. Google ADK / Vertex Search Config
+        properties:
+          datastore_id:
+            type: string
+          location:
+            description: '"global" ou "europe-west1"'
+            type: string
+          project_id:
+            type: string
+        type: object
+      provider:
+        $ref: '#/definitions/rag.KnowledgeBaseProvider'
+      top_k:
+        type: integer
+    type: object
+  rag.KnowledgeBaseProvider:
+    enum:
+    - builtin_pgvector
+    - google_vertex_search
+    - pinecone
+    - qdrant
+    - custom_endpoint
+    type: string
+    x-enum-varnames:
+    - ProviderBuiltInPGVector
+    - ProviderGoogleVertex
+    - ProviderPinecone
+    - ProviderQdrant
+    - ProviderCustomEndpoint
+  rag.SearchResult:
+    properties:
+      best_score:
+        type: number
+      chunks:
+        items:
+          type: string
+        type: array
+      transfer_needed:
+        type: boolean
+    type: object
   service.QueryBrainRequest:
     properties:
       channel:
@@ -338,8 +437,8 @@ info:
   contact:
     name: API Support
     url: https://github.com/lynxflow/patter-go
-  description: Omnichannel gateway and campaign engine (WhatsApp Evolution Go, Voice,
-    SMS, AI Brain)
+  description: Omnichannel gateway, campaign engine & Unified RAG Router (WhatsApp
+    Evolution Go, Voice, SMS, AI Brain)
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -376,6 +475,63 @@ paths:
                   $ref: '#/definitions/service.QueryBrainResponse'
               type: object
       summary: Interroger le cerveau IA RAG & LeMUR v3
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/rag/search:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres RAG
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.RAGSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/rag.SearchResult'
+              type: object
+      summary: Recherche RAG Unifiée avec règle d'escalade automatique
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/transfer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments de transfert
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Invoquer le skill de transfert vers un humain avec consentement oral
       tags:
       - Gateway - Brain
   /api/v1/gateway/campaigns:

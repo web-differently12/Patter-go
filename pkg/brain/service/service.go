@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+
+	"github.com/lynxflow/patter-go/pkg/core"
+	"github.com/lynxflow/patter-go/pkg/rag"
+	"github.com/lynxflow/patter-go/pkg/skills"
 )
 
 type QueryBrainRequest struct {
@@ -19,12 +23,24 @@ type QueryBrainResponse struct {
 
 type BrainService interface {
 	QueryBrain(ctx context.Context, tenantID string, req QueryBrainRequest) (*QueryBrainResponse, error)
+	SearchRAG(ctx context.Context, tenantID, callSID, query string, cfg rag.KnowledgeBaseConfig) (*rag.SearchResult, error)
+	ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error)
 }
 
-type brainService struct{}
+type brainService struct {
+	ragRouter   *rag.UnifiedRAGRouter
+	transferSkill *skills.HumanTransferSkill
+}
 
 func NewBrainService() BrainService {
-	return &brainService{}
+	logger := core.GetLogger()
+	router := rag.NewUnifiedRAGRouter(nil, nil, logger)
+	skill := skills.NewHumanTransferSkill(nil, logger)
+
+	return &brainService{
+		ragRouter:   router,
+		transferSkill: skill,
+	}
 }
 
 func (s *brainService) QueryBrain(ctx context.Context, tenantID string, req QueryBrainRequest) (*QueryBrainResponse, error) {
@@ -34,4 +50,12 @@ func (s *brainService) QueryBrain(ctx context.Context, tenantID string, req Quer
 		Confidence: 0.98,
 		Sources:    []string{"RAG Knowledgebase", "LeMUR v3"},
 	}, nil
+}
+
+func (s *brainService) SearchRAG(ctx context.Context, tenantID, callSID, query string, cfg rag.KnowledgeBaseConfig) (*rag.SearchResult, error) {
+	return s.ragRouter.SearchAndDecide(ctx, tenantID, callSID, query, []float32{0.1, 0.2}, cfg)
+}
+
+func (s *brainService) ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error) {
+	return s.transferSkill.Execute(ctx, tenantID, callSID, rawArgs, destination)
 }

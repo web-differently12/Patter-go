@@ -31,7 +31,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway and campaign engine (WhatsApp Evolution Go, Voice, SMS, AI Brain)
+// @description     Omnichannel gateway, campaign engine & Unified RAG Router (WhatsApp Evolution Go, Voice, SMS, AI Brain)
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -96,8 +96,10 @@ func main() {
 		// Messaging SMS/MMS
 		api.POST("/messaging/sms", msgController.SendSMS)
 
-		// AI Brain
+		// AI Brain & Unified RAG Router
 		api.POST("/brain/query", bController.QueryBrain)
+		api.POST("/brain/rag/search", bController.SearchRAG)
+		api.POST("/brain/transfer", bController.HumanTransfer)
 	}
 
 	// Serve Static Dashboard Web UI
