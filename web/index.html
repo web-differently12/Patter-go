@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocal Engine AI - SaaS Admin Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-gray-800 bg-[#111827] px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-phone-volume text-xl text-white"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Patter Go</span>
+                <span class="text-xs block text-blue-400 font-semibold tracking-wider uppercase">Voice Microservice SAAS</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2 text-sm bg-[#1f2937] px-3.5 py-1.5 rounded-full border border-gray-700">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                </span>
+                <span class="text-gray-300 font-medium">Engine Connected</span>
+            </div>
+            <a href="/swagger/index.html" target="_blank" class="text-sm font-semibold text-blue-400 hover:text-blue-300 transition flex items-center space-x-1">
+                <i class="fa-solid fa-code"></i>
+                <span>OpenAPI Docs</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="w-64 border-r border-gray-800 bg-[#111827] p-5 space-y-2 hidden md:block">
+            <p class="text-xs uppercase font-bold text-gray-500 tracking-wider mb-4">Core Modules</p>
+            <a href="#" class="flex items-center space-x-3 text-white bg-blue-600/10 border-l-4 border-blue-500 px-4 py-3 rounded-lg text-sm font-semibold transition">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Voice Agents</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white px-4 py-3 rounded-lg text-sm font-medium transition">
+                <i class="fa-solid fa-phone-flip"></i>
+                <span>Active Calls</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white px-4 py-3 rounded-lg text-sm font-medium transition">
+                <i class="fa-solid fa-server"></i>
+                <span>Provider Settings</span>
+            </a>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="flex-1 p-6 lg:p-8 space-y-8 overflow-y-auto max-w-7xl mx-auto">
+
+            <!-- Quick Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-[#111827] border border-gray-800 p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
+                        <i class="fa-solid fa-users text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium">Total Agents</p>
+                        <p id="total-agents-stat" class="text-2xl font-bold">1</p>
+                    </div>
+                </div>
+                <div class="bg-[#111827] border border-gray-800 p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl">
+                        <i class="fa-solid fa-clock text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium">Latency (Avg)</p>
+                        <p class="text-2xl font-bold">25 ms</p>
+                    </div>
+                </div>
+                <div class="bg-[#111827] border border-gray-800 p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="p-3 bg-purple-500/10 text-purple-500 rounded-xl">
+                        <i class="fa-solid fa-network-wired text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium">Tool Call Pipeline</p>
+                        <p class="text-2xl font-bold">RabbitMQ</p>
+                    </div>
+                </div>
+                <div class="bg-[#111827] border border-gray-800 p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="p-3 bg-amber-500/10 text-amber-500 rounded-xl">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-medium">Failovers Active</p>
+                        <p class="text-2xl font-bold">Resilient</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Double Column Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <!-- Column 1 & 2: Agent Profiles and Creation -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Agent list card -->
+                    <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-lg font-bold text-white">Active AI Voice Agents</h2>
+                            <button onclick="fetchAgents()" class="text-gray-400 hover:text-white transition">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div id="agents-list" class="space-y-4">
+                            <!-- Dynamically loaded -->
+                        </div>
+                    </div>
+
+                    <!-- Creation Form -->
+                    <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-6">Create New AI Agent Profile</h2>
+                        <form id="create-agent-form" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Agent ID</label>
+                                    <input type="text" id="agent-id" placeholder="e.g. support-agent" required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Display Name</label>
+                                    <input type="text" id="agent-name" placeholder="e.g. Acme Billing" required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Voice Mode</label>
+                                    <select id="agent-mode" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                        <option value="realtime">Realtime Mode (Low-Latency Websockets)</option>
+                                        <option value="pipeline">Pipeline Mode (STT -> LLM -> TTS)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Voice Tone</label>
+                                    <select id="agent-voice" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                        <option value="alloy">Alloy (Natural/Calm)</option>
+                                        <option value="echo">Echo (Crisp/Energetic)</option>
+                                        <option value="shimmer">Shimmer (Professional)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">STT Provider</label>
+                                    <select id="stt-provider" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                        <option value="deepgram">Deepgram Nova-2</option>
+                                        <option value="assemblyai">AssemblyAI Leven</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">LLM Provider (Primary)</label>
+                                    <select id="llm-provider" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                        <option value="openai">OpenAI GPT-4o</option>
+                                        <option value="groq">Groq LLaMA 3.1</option>
+                                        <option value="anthropic">Anthropic Claude</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">TTS Provider</label>
+                                    <select id="tts-provider" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                        <option value="elevenlabs">ElevenLabs Multi</option>
+                                        <option value="cartesia">Cartesia Sonic</option>
+                                        <option value="openai_tts">OpenAI Audio</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">System Instruction Prompt</label>
+                                <textarea id="agent-prompt" rows="3" placeholder="You are a warm, extremely polite assistant for..." required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Save Agent Configuration</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Column 3: Outbound calling console -->
+                <div class="space-y-8">
+                    <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-6">Outbound Call Dialer</h2>
+
+                        <form id="dialer-form" class="space-y-5">
+                            <div>
+                                <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Target Phone Number</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">
+                                        <i class="fa-solid fa-hashtag"></i>
+                                    </span>
+                                    <input type="text" id="target-number" placeholder="+15551234567" required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl pl-10 pr-4 py-3.5 text-sm focus:outline-none focus:border-blue-500 text-white">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Agent Prompt</label>
+                                <input type="text" id="dialer-prompt" value="You are a helpful office receptionist." required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Tenant ID</label>
+                                <input type="text" id="dialer-tenant" value="tenant-saas-1" required class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-white">
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+                                <i class="fa-solid fa-phone"></i>
+                                <span>Trigger Outbound Call</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Call logs console -->
+                    <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-4">Streaming Event Console</h2>
+                        <div id="dialer-console" class="bg-gray-950 rounded-xl p-4 h-48 overflow-y-auto text-xs font-mono text-green-400 space-y-2 border border-gray-800">
+                            <div>[Console] Idle... Ready to stream.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script to handle front interaction -->
+    <script>
+        const logConsole = (message) => {
+            const consoleEl = document.getElementById('dialer-console');
+            const time = new Date().toLocaleTimeString();
+            consoleEl.innerHTML += `<div>[${time}] ${message}</div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        };
+
+        const fetchAgents = async () => {
+            try {
+                const response = await fetch('/api/v1/agents');
+                const agents = await response.json();
+
+                const listEl = document.getElementById('agents-list');
+                document.getElementById('total-agents-stat').innerText = agents.length;
+                listEl.innerHTML = '';
+
+                agents.forEach(agent => {
+                    listEl.innerHTML += `
+                        <div class="p-5 bg-[#1f2937] rounded-xl border border-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <p class="text-base font-bold text-white">${agent.name}</p>
+                                <p class="text-xs text-blue-400 font-semibold mb-2">${agent.mode === 'realtime' ? 'Realtime Websockets' : 'Orchestrated Pipeline'}</p>
+                                <p class="text-xs text-gray-400">${agent.systemPrompt.substring(0, 100)}...</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs px-3 py-1 bg-gray-800 text-gray-300 rounded-full border border-gray-700">Voice: ${agent.voice}</span>
+                                <span class="text-xs px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full">LLM: ${agent.llmProviderId}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error("Failed to load agents", err);
+            }
+        };
+
+        document.getElementById('create-agent-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const agent = {
+                id: document.getElementById('agent-id').value,
+                name: document.getElementById('agent-name').value,
+                tenantId: 'tenant-saas-1',
+                mode: document.getElementById('agent-mode').value,
+                voice: document.getElementById('agent-voice').value,
+                systemPrompt: document.getElementById('agent-prompt').value,
+                firstMessage: "Hello! How can I help?",
+                sttProviderId: document.getElementById('stt-provider').value,
+                ttsProviderId: document.getElementById('tts-provider').value,
+                llmProviderId: document.getElementById('llm-provider').value,
+                fallbackChain: ["groq", "anthropic"],
+                vadSensitivity: 0.25,
+                tools: []
+            };
+
+            try {
+                const response = await fetch('/api/v1/agents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(agent)
+                });
+                if (response.ok) {
+                    logConsole(`Agent "${agent.name}" profile saved successfully!`);
+                    fetchAgents();
+                    document.getElementById('create-agent-form').reset();
+                } else {
+                    const err = await response.json();
+                    logConsole(`Error: ${err.error}`);
+                }
+            } catch (err) {
+                logConsole(`Error submitting agent: ${err.message}`);
+            }
+        });
+
+        document.getElementById('dialer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const targetNumber = document.getElementById('target-number').value;
+            const agentPrompt = document.getElementById('dialer-prompt').value;
+            const tenantId = document.getElementById('dialer-tenant').value;
+
+            logConsole(`Initiating outbound call to ${targetNumber}...`);
+
+            try {
+                const response = await fetch('/api/v1/call/outbound', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetNumber, agentPrompt, tenantId })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    logConsole(`Call triggered! SID: ${data.callSid}, Status: ${data.status}`);
+                    logConsole(`Websocket media stream connected.`);
+                } else {
+                    const err = await response.json();
+                    logConsole(`Call trigger failed: ${err.error}`);
+                }
+            } catch (err) {
+                logConsole(`Error triggering call: ${err.message}`);
+            }
+        });
+
+        // Initial fetch
+        fetchAgents();
+    </script>
+</body>
+</html>
