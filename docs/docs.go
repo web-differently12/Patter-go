@@ -739,6 +739,279 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/gateway/rtc/bot": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Meeting Bots (RTC)"
+                ],
+                "summary": "Déployer un Bot d'Appel Visio (Zoom, Google Meet, MS Teams, Webex via Recall.ai)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Configuration du Bot",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/rtc.CreateMeetingBotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/rtc.MeetingBotResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/rtc/bots": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Meeting Bots (RTC)"
+                ],
+                "summary": "Lister les Bots de visioconférence actifs du Tenant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/rtc.MeetingBotResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/rtc/bots/{id}/leave": {
+            "post": {
+                "tags": [
+                    "Gateway - Meeting Bots (RTC)"
+                ],
+                "summary": "Demander au Bot de quitter la visioconférence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID du Bot",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/sip/call": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Direct SIP Trunking PBX"
+                ],
+                "summary": "Emettre un appel via Trunk SIP direct sans Twilio",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres de l'appel SIP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sip.SIPCallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sip.SIPCallResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/sip/trunks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Direct SIP Trunking PBX"
+                ],
+                "summary": "Lister les Trunks SIP configurés pour le Tenant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/sip.SIPTrunkConfig"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Bypass Twilio en connectant directement le PBX / Standard Téléphonique du client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Direct SIP Trunking PBX"
+                ],
+                "summary": "Enregistrer un Trunk SIP Universel (OVH, 3CX, FreeSWITCH, Asterisk, Aircall)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Configuration Trunk SIP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sip.SIPTrunkConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sip.SIPTrunkConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/gateway/voice/call": {
             "post": {
                 "consumes": [
@@ -903,6 +1176,162 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/gateway/whatsapp/contact/send": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "Envoyer une carte de contact VCard WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres contact",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendContactRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SendMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/location/send": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "Envoyer une localisation GPS WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres localisation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendLocationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SendMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/whatsapp/media/send": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - WhatsApp"
+                ],
+                "summary": "Envoyer un média WhatsApp (Image, Vidéo, Document, Audio, Sticker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres média",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendMediaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SendMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/gateway/whatsapp/message/send": {
             "post": {
                 "consumes": [
@@ -914,7 +1343,7 @@ const docTemplate = `{
                 "tags": [
                     "Gateway - WhatsApp"
                 ],
-                "summary": "Envoyer un message WhatsApp",
+                "summary": "Envoyer un message WhatsApp texte",
                 "parameters": [
                     {
                         "type": "string",
@@ -1553,14 +1982,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires_in": {
-                    "description": "in seconds",
                     "type": "integer"
                 },
                 "pairing_code": {
                     "type": "string"
                 },
                 "qrcode_base64": {
-                    "description": "Base64 encoded QR Code or string SVG",
                     "type": "string"
                 },
                 "session_name": {
@@ -1568,6 +1995,85 @@ const docTemplate = `{
                 },
                 "status": {
                     "description": "\"SCAN_QR_CODE\", \"WORKING\", \"CONNECTING\"",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendContactRequest": {
+            "type": "object",
+            "required": [
+                "contact_name",
+                "phone",
+                "recipient",
+                "session_name"
+            ],
+            "properties": {
+                "contact_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "recipient": {
+                    "type": "string"
+                },
+                "session_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendLocationRequest": {
+            "type": "object",
+            "required": [
+                "latitude",
+                "longitude",
+                "recipient",
+                "session_name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "recipient": {
+                    "type": "string"
+                },
+                "session_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendMediaRequest": {
+            "type": "object",
+            "required": [
+                "media_type",
+                "media_url",
+                "recipient",
+                "session_name"
+            ],
+            "properties": {
+                "caption": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "description": "\"image\", \"video\", \"document\", \"audio\", \"sticker\"",
+                    "type": "string"
+                },
+                "media_url": {
+                    "type": "string"
+                },
+                "recipient": {
+                    "type": "string"
+                },
+                "session_name": {
                     "type": "string"
                 }
             }
@@ -1580,14 +2086,11 @@ const docTemplate = `{
                 "session_name"
             ],
             "properties": {
-                "media_url": {
-                    "type": "string"
-                },
                 "message": {
                     "type": "string"
                 },
                 "recipient": {
-                    "description": "Phone number in E.164",
+                    "description": "E.164 format",
                     "type": "string"
                 },
                 "session_name": {
@@ -1810,6 +2313,143 @@ const docTemplate = `{
                 }
             }
         },
+        "rtc.BotStatus": {
+            "type": "string",
+            "enum": [
+                "joining",
+                "in_call",
+                "recording",
+                "left",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "StatusJoining",
+                "StatusInCall",
+                "StatusRecording",
+                "StatusLeft",
+                "StatusFailed"
+            ]
+        },
+        "rtc.CreateMeetingBotRequest": {
+            "type": "object",
+            "required": [
+                "meeting_url"
+            ],
+            "properties": {
+                "automatic_leave_when_alone": {
+                    "type": "boolean"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bot_name": {
+                    "type": "string"
+                },
+                "enable_chat_messaging": {
+                    "type": "boolean"
+                },
+                "enable_realtime_audio_stream": {
+                    "type": "boolean"
+                },
+                "enable_realtime_transcript": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "description": "\"fr\", \"en\", \"es\", \"de\", \"auto\"",
+                    "type": "string"
+                },
+                "meeting_url": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/rtc.MeetingPlatform"
+                },
+                "recording_mode": {
+                    "$ref": "#/definitions/rtc.RecordingMode"
+                },
+                "silence_timeout_minutes": {
+                    "type": "integer"
+                },
+                "system_prompt": {
+                    "type": "string"
+                },
+                "webhook_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "rtc.MeetingBotResponse": {
+            "type": "object",
+            "properties": {
+                "audio_stream_websocket_url": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bot_id": {
+                    "type": "string"
+                },
+                "bot_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "meeting_url": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/rtc.MeetingPlatform"
+                },
+                "recording_mode": {
+                    "$ref": "#/definitions/rtc.RecordingMode"
+                },
+                "status": {
+                    "$ref": "#/definitions/rtc.BotStatus"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "transcript_url": {
+                    "type": "string"
+                },
+                "video_recording_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "rtc.MeetingPlatform": {
+            "type": "string",
+            "enum": [
+                "zoom",
+                "google_meet",
+                "teams",
+                "webex"
+            ],
+            "x-enum-varnames": [
+                "PlatformZoom",
+                "PlatformGoogleMeet",
+                "PlatformMicrosoftTeams",
+                "PlatformWebex"
+            ]
+        },
+        "rtc.RecordingMode": {
+            "type": "string",
+            "enum": [
+                "speaker_view",
+                "gallery_view",
+                "audio_only"
+            ],
+            "x-enum-varnames": [
+                "RecordingSpeakerView",
+                "RecordingGalleryView",
+                "RecordingAudioOnly"
+            ]
+        },
         "service.QueryBrainRequest": {
             "type": "object",
             "required": [
@@ -1918,6 +2558,120 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "sip.SIPCallRequest": {
+            "type": "object",
+            "required": [
+                "from_user",
+                "to_uri",
+                "trunk_id"
+            ],
+            "properties": {
+                "agent_id": {
+                    "type": "string"
+                },
+                "audio_codec": {
+                    "description": "\"PCMU\", \"PCMA\", \"G722\", \"OPUS\"",
+                    "type": "string"
+                },
+                "enable_rtp": {
+                    "type": "boolean"
+                },
+                "from_user": {
+                    "type": "string"
+                },
+                "to_uri": {
+                    "description": "sip:user@domain or +33612345678",
+                    "type": "string"
+                },
+                "trunk_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "sip.SIPCallResponse": {
+            "type": "object",
+            "properties": {
+                "call_id": {
+                    "type": "string"
+                },
+                "codec": {
+                    "type": "string"
+                },
+                "rtp_address": {
+                    "type": "string"
+                },
+                "sip_call_id": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "\"INVITE_SENT\", \"RINGING\", \"CONNECTED\", \"DISCONNECTED\"",
+                    "type": "string"
+                }
+            }
+        },
+        "sip.SIPTrunkConfig": {
+            "type": "object",
+            "required": [
+                "server_host",
+                "username"
+            ],
+            "properties": {
+                "auth_domain": {
+                    "type": "string"
+                },
+                "outbound_uri": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "description": "Default 5060 or 5061 (TLS)",
+                    "type": "integer"
+                },
+                "provider": {
+                    "$ref": "#/definitions/sip.SIPTrunkProvider"
+                },
+                "registered": {
+                    "type": "boolean"
+                },
+                "server_host": {
+                    "description": "e.g. \"sip.ovh.fr\", \"pbx.company.com\"",
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "trunk_id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "sip.SIPTrunkProvider": {
+            "type": "string",
+            "enum": [
+                "ovh_telecom",
+                "3cx",
+                "freeswitch",
+                "asterisk",
+                "aircall",
+                "custom_sip"
+            ],
+            "x-enum-varnames": [
+                "TrunkOVHTelecom",
+                "Trunk3CX",
+                "TrunkFreeSWITCH",
+                "TrunkAsterisk",
+                "TrunkAircall",
+                "TrunkCustomSIP"
+            ]
         }
     }
 }`
@@ -1929,7 +2683,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Patter Engine Gateway & Campaign Engine API",
-	Description:      "Omnichannel gateway, campaign engine, Unified RAG Router, Calendar Booking & AssemblyAI LeMUR v3 Post-Call Analytics",
+	Description:      "Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

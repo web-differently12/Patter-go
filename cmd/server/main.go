@@ -24,6 +24,7 @@ import (
 	messagingCtrl "github.com/lynxflow/patter-go/pkg/messaging/controller"
 	messagingSvc "github.com/lynxflow/patter-go/pkg/messaging/service"
 	"github.com/lynxflow/patter-go/pkg/rtc"
+	"github.com/lynxflow/patter-go/pkg/sip"
 	voiceCtrl "github.com/lynxflow/patter-go/pkg/voice/controller"
 	voiceSvc "github.com/lynxflow/patter-go/pkg/voice/service"
 	waCtrl "github.com/lynxflow/patter-go/pkg/whatsapp/controller"
@@ -32,7 +33,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Recall.ai Meeting Bots, Calendar Booking & Evolution Go WhatsApp Proxy
+// @description     Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -59,6 +60,7 @@ func main() {
 	msgSvc := messagingSvc.NewMessagingService()
 	bSvc := brainSvc.NewBrainService()
 	recallSvc := rtc.NewRecallAIService(os.Getenv("RECALL_AI_API_KEY"), logger)
+	sipSvc := sip.NewSIPPBXService(logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -68,6 +70,7 @@ func main() {
 	msgController := messagingCtrl.NewMessagingController(msgSvc)
 	bController := brainCtrl.NewBrainController(bSvc)
 	recallController := rtc.NewRecallController(recallSvc)
+	sipController := sip.NewSIPController(sipSvc)
 
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
@@ -77,6 +80,11 @@ func main() {
 		api.GET("/instances", instController.ListInstances)
 		api.GET("/instances/:id", instController.GetInstance)
 		api.DELETE("/instances/:id", instController.DeleteInstance)
+
+		// Direct Universal SIP Trunking PBX (OVH, 3CX, FreeSWITCH, Asterisk, Aircall)
+		api.POST("/sip/trunks", sipController.RegisterTrunk)
+		api.GET("/sip/trunks", sipController.ListTrunks)
+		api.POST("/sip/call", sipController.InitiateSIPCall)
 
 		// WhatsApp Evolution Proxy
 		api.POST("/whatsapp/connect", waController.ConnectSession)
