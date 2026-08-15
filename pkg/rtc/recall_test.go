@@ -83,3 +83,40 @@ func TestMeetingProfileConfiguration(t *testing.T) {
 		t.Errorf("Expected BANT_QUALIFICATION summary template")
 	}
 }
+
+func TestRecallAIBotAdvancedOptions(t *testing.T) {
+	svc := rtc.NewRecallAIService("", nil)
+	ctx := context.Background()
+
+	settings, err := svc.SaveTenantMeetingSettings(ctx, "tenant_test", rtc.TenantMeetingSettings{
+		DefaultBotName:   "Patter AI White-Label Agent",
+		DefaultAvatarURL: "https://patter.ai/assets/logo.png",
+		DefaultLanguage:  "fr",
+		TranscriptionOptions: rtc.TranscriptionOptions{
+			Provider: "assemblyai",
+			Language: "fr",
+		},
+		AutomaticLeave: rtc.AutomaticLeaveOptions{
+			EveryoneLeftTimeoutSec: 120,
+			SilenceTimeoutSec:      600,
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("Unexpected error saving tenant meeting settings: %v", err)
+	}
+	if settings.DefaultBotName != "Patter AI White-Label Agent" {
+		t.Errorf("Expected custom default bot name")
+	}
+
+	bot, err := svc.CreateMeetingBot(ctx, "tenant_test", rtc.CreateMeetingBotRequest{
+		MeetingURL: "https://zoom.us/j/123456789",
+		Platform:   rtc.PlatformZoom,
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error creating meeting bot: %v", err)
+	}
+	if bot.BotName != "Patter AI White-Label Agent" {
+		t.Errorf("Expected inherited tenant bot name, got %s", bot.BotName)
+	}
+}

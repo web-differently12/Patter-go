@@ -9,10 +9,33 @@ import (
 
 type MCPController struct {
 	mcpService MCPService
+	hub        *TenantIntegrationHub
 }
 
 func NewMCPController(svc MCPService) *MCPController {
-	return &MCPController{mcpService: svc}
+	return &MCPController{
+		mcpService: svc,
+		hub:        NewTenantIntegrationHub(svc),
+	}
+}
+
+// GetN8NCommunityNodeSchema godoc
+// @Summary      Obtenir le schéma du nœud communautaire n8n / Make.com 1-Click
+// @Description  Génère automatiquement les spécifications de nœuds n8n pour les serveurs MCP et webhooks du Tenant
+// @Tags         Gateway - Model Context Protocol (MCP)
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Success      200 {object} core.APIResponse{data=N8NCommunityNodeSchema}
+// @Router       /api/v1/gateway/integrations/n8n/node-schema [get]
+func (ctrl *MCPController) GetN8NCommunityNodeSchema(c *gin.Context) {
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.hub.GenerateN8NNodeSchema(c.Request.Context(), tenantID)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
 }
 
 // RegisterServer godoc

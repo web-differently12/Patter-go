@@ -49,3 +49,20 @@ func TestMCPServiceLifecycle(t *testing.T) {
 		t.Errorf("Expected IsError == false")
 	}
 }
+
+func TestN8NCommunityNodeSchema(t *testing.T) {
+	svc := mcp.NewMCPService(nil)
+	hub := mcp.NewTenantIntegrationHub(svc)
+
+	schema, err := hub.GenerateN8NNodeSchema(context.Background(), "tenant_test")
+	if err != nil {
+		t.Fatalf("Unexpected error generating n8n community node schema: %v", err)
+	}
+
+	if schema.NodeName != "n8n-nodes-patter-gateway" {
+		t.Errorf("Expected n8n node name n8n-nodes-patter-gateway, got %s", schema.NodeName)
+	}
+	if len(schema.Properties) == 0 {
+		t.Errorf("Expected non-empty properties for 1-click n8n node")
+	}
+}

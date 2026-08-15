@@ -42,6 +42,37 @@ const (
 	StatusFailed    BotStatus = "failed"
 )
 
+type TranscriptionOptions struct {
+	Provider       string   `json:"provider,omitempty"`       // "assemblyai", "deepgram", "gladia", "whisper"
+	Language       string   `json:"language,omitempty"`       // "fr", "en", "es", "de", "auto"
+	CustomVocabulary []string `json:"custom_vocabulary,omitempty"`
+}
+
+type AutomaticLeaveOptions struct {
+	EveryoneLeftTimeoutSec int  `json:"everyone_left_timeout_sec,omitempty"` // Default 60s
+	SilenceTimeoutSec      int  `json:"silence_timeout_sec,omitempty"`       // Default 300s
+	MaxDurationMinutes     int  `json:"max_duration_minutes,omitempty"`      // Default 180m
+	LeaveWhenHostLeaves    bool `json:"leave_when_host_leaves"`
+}
+
+type VideoOptions struct {
+	Layout            string `json:"layout,omitempty"`              // "speaker", "gallery"
+	Resolution        string `json:"resolution,omitempty"`          // "720p", "1080p"
+	WatermarkImageURL string `json:"watermark_image_url,omitempty"` // White-label logo
+}
+
+type TenantMeetingSettings struct {
+	TenantID             string                 `json:"tenant_id"`
+	DefaultBotName       string                 `json:"default_bot_name"`
+	DefaultAvatarURL     string                 `json:"default_avatar_url"`
+	DefaultLanguage      string                 `json:"default_language"`
+	TranscriptionOptions TranscriptionOptions   `json:"transcription_options"`
+	AutomaticLeave       AutomaticLeaveOptions  `json:"automatic_leave"`
+	VideoOptions         VideoOptions           `json:"video_options"`
+	WebhookEvents        []string               `json:"webhook_events"` // "bot.status_change", "transcript.chunk", "recording.done"
+	WebhookURL           string                 `json:"webhook_url"`
+}
+
 type MeetingProfile struct {
 	ProfileID                     string `json:"profile_id"`
 	TenantID                      string `json:"tenant_id"`
@@ -50,29 +81,30 @@ type MeetingProfile struct {
 	EnableActionItemsExtraction   bool   `json:"enable_action_items_extraction"`
 	EnableParticipantSentiment    bool   `json:"enable_participant_sentiment"`
 	EnableLiveTranslation         bool   `json:"enable_live_translation"`
-	TargetTranslationLanguage     string `json:"target_translation_language,omitempty"` // "en", "fr", "es", "de"
+	TargetTranslationLanguage     string `json:"target_translation_language,omitempty"`
 	EnableScreenShareRecording    bool   `json:"enable_screen_share_recording"`
-	SummaryTemplate               string `json:"summary_template"`               // "BANT_QUALIFICATION", "EXECUTIVE_SUMMARY", "TECHNICAL_ACTION_ITEMS"
+	SummaryTemplate               string `json:"summary_template"`
 	AutoLeaveOnSilenceMinutes     int    `json:"auto_leave_on_silence_minutes"`
 	AutoLeaveWhenEveryoneLeft     bool   `json:"auto_leave_when_everyone_left"`
 	CustomAvatarVideoURL          string `json:"custom_avatar_video_url,omitempty"`
 }
 
 type CreateMeetingBotRequest struct {
-	MeetingURL                string          `json:"meeting_url" binding:"required"`
-	ProfileID                 string          `json:"profile_id,omitempty"`
-	BotName                   string          `json:"bot_name,omitempty"`
-	AvatarURL                 string          `json:"avatar_url,omitempty"`
-	Platform                  MeetingPlatform `json:"platform,omitempty"`
-	RecordingMode             RecordingMode   `json:"recording_mode,omitempty"`
-	EnableRealtimeTranscript  bool            `json:"enable_realtime_transcript"`
-	EnableRealtimeAudioStream bool            `json:"enable_realtime_audio_stream"`
-	EnableChatMessaging       bool            `json:"enable_chat_messaging"`
-	Language                  string          `json:"language,omitempty"` // "fr", "en", "es", "de", "auto"
-	AutomaticLeaveWhenAlone   bool            `json:"automatic_leave_when_alone"`
-	SilenceTimeoutMinutes     int             `json:"silence_timeout_minutes,omitempty"`
-	SystemPrompt              string          `json:"system_prompt,omitempty"`
-	WebhookURL                string          `json:"webhook_url,omitempty"`
+	MeetingURL                string                 `json:"meeting_url" binding:"required"`
+	ProfileID                 string                 `json:"profile_id,omitempty"`
+	BotName                   string                 `json:"bot_name,omitempty"`
+	AvatarURL                 string                 `json:"avatar_url,omitempty"`
+	Platform                  MeetingPlatform        `json:"platform,omitempty"`
+	RecordingMode             RecordingMode          `json:"recording_mode,omitempty"`
+	EnableRealtimeTranscript  bool                   `json:"enable_realtime_transcript"`
+	EnableRealtimeAudioStream bool                   `json:"enable_realtime_audio_stream"`
+	EnableChatMessaging       bool                   `json:"enable_chat_messaging"`
+	TranscriptionOptions      *TranscriptionOptions  `json:"transcription_options,omitempty"`
+	AutomaticLeave            *AutomaticLeaveOptions `json:"automatic_leave,omitempty"`
+	VideoOptions              *VideoOptions          `json:"video_options,omitempty"`
+	Language                  string                 `json:"language,omitempty"`
+	WebhookURL                string                 `json:"webhook_url,omitempty"`
+	Metadata                  map[string]string      `json:"metadata,omitempty"`
 }
 
 type SendMeetingChatMessageRequest struct {
@@ -81,23 +113,27 @@ type SendMeetingChatMessageRequest struct {
 }
 
 type MeetingBotResponse struct {
-	BotID                   string          `json:"bot_id"`
-	TenantID                string          `json:"tenant_id"`
-	ProfileID               string          `json:"profile_id,omitempty"`
-	MeetingURL              string          `json:"meeting_url"`
-	BotName                 string          `json:"bot_name"`
-	AvatarURL               string          `json:"avatar_url,omitempty"`
-	Platform                MeetingPlatform `json:"platform"`
-	Status                  BotStatus       `json:"status"`
-	Language                string          `json:"language"`
-	RecordingMode           RecordingMode   `json:"recording_mode"`
-	VideoRecordingURL       string          `json:"video_recording_url,omitempty"`
-	TranscriptURL           string          `json:"transcript_url,omitempty"`
-	AudioStreamWebSocketURL string          `json:"audio_stream_websocket_url,omitempty"`
-	CreatedAt               time.Time       `json:"created_at"`
+	BotID                   string                 `json:"bot_id"`
+	TenantID                string                 `json:"tenant_id"`
+	ProfileID               string                 `json:"profile_id,omitempty"`
+	MeetingURL              string                 `json:"meeting_url"`
+	BotName                 string                 `json:"bot_name"`
+	AvatarURL               string                 `json:"avatar_url,omitempty"`
+	Platform                MeetingPlatform        `json:"platform"`
+	Status                  BotStatus              `json:"status"`
+	Language                string                 `json:"language"`
+	RecordingMode           RecordingMode          `json:"recording_mode"`
+	VideoRecordingURL       string                 `json:"video_recording_url,omitempty"`
+	TranscriptURL           string                 `json:"transcript_url,omitempty"`
+	AudioStreamWebSocketURL string                 `json:"audio_stream_websocket_url,omitempty"`
+	TranscriptionOptions    TranscriptionOptions   `json:"transcription_options"`
+	AutomaticLeave          AutomaticLeaveOptions  `json:"automatic_leave"`
+	CreatedAt               time.Time              `json:"created_at"`
 }
 
 type RecallAIService interface {
+	SaveTenantMeetingSettings(ctx context.Context, tenantID string, settings TenantMeetingSettings) (*TenantMeetingSettings, error)
+	GetTenantMeetingSettings(ctx context.Context, tenantID string) (*TenantMeetingSettings, error)
 	CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error)
 	GetMeetingProfile(ctx context.Context, tenantID, profileID string) (*MeetingProfile, error)
 	ListMeetingProfiles(ctx context.Context, tenantID string) ([]*MeetingProfile, error)
@@ -109,12 +145,13 @@ type RecallAIService interface {
 }
 
 type recallAIService struct {
-	apiKey     string
-	httpClient *http.Client
-	logger     *slog.Logger
-	mu         sync.RWMutex
-	profiles   map[string]*MeetingProfile
-	bots       map[string]*MeetingBotResponse
+	apiKey         string
+	httpClient     *http.Client
+	logger         *slog.Logger
+	mu             sync.RWMutex
+	tenantSettings map[string]*TenantMeetingSettings
+	profiles       map[string]*MeetingProfile
+	bots           map[string]*MeetingBotResponse
 }
 
 func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
@@ -122,49 +159,70 @@ func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
 		logger = core.GetLogger()
 	}
 	svc := &recallAIService{
-		apiKey:     apiKey,
-		httpClient: &http.Client{Timeout: 10 * time.Second},
-		logger:     logger.With("component", "recall_ai"),
-		profiles:   make(map[string]*MeetingProfile),
-		bots:       make(map[string]*MeetingBotResponse),
+		apiKey:         apiKey,
+		httpClient:     &http.Client{Timeout: 10 * time.Second},
+		logger:         logger.With("component", "recall_ai"),
+		tenantSettings: make(map[string]*TenantMeetingSettings),
+		profiles:       make(map[string]*MeetingProfile),
+		bots:           make(map[string]*MeetingBotResponse),
 	}
 
-	// Pre-populate default Meeting Profile
-	defaultProfID := "mp_executive_pro"
-	svc.profiles["default_tenant:"+defaultProfID] = &MeetingProfile{
-		ProfileID:                   defaultProfID,
-		TenantID:                    "default_tenant",
-		Name:                        "Profil Exécutif — Diarisation & Actions",
-		EnableSpeakerDiarization:    true,
-		EnableActionItemsExtraction: true,
-		EnableParticipantSentiment:  true,
-		EnableLiveTranslation:       true,
-		TargetTranslationLanguage:   "fr",
-		EnableScreenShareRecording:  true,
-		SummaryTemplate:             "EXECUTIVE_SUMMARY",
-		AutoLeaveOnSilenceMinutes:   5,
-		AutoLeaveWhenEveryoneLeft:   true,
-	}
-
-	mockID := "bot_meet_101"
-	svc.bots["default_tenant:"+mockID] = &MeetingBotResponse{
-		BotID:                   mockID,
-		TenantID:                "default_tenant",
-		ProfileID:               defaultProfID,
-		MeetingURL:              "https://meet.google.com/abc-defg-hij",
-		BotName:                 "Patter AI Assistant",
-		AvatarURL:               "https://patter.ai/assets/avatar_white_label.png",
-		Platform:                PlatformGoogleMeet,
-		Status:                  StatusInCall,
-		Language:                "fr",
-		RecordingMode:           RecordingSpeakerView,
-		VideoRecordingURL:       "https://recall.ai/recordings/rec_101.mp4",
-		TranscriptURL:           "https://recall.ai/transcripts/trx_101.json",
-		AudioStreamWebSocketURL: "wss://recall.ai/ws/audio/bot_101",
-		CreatedAt:               time.Now().Add(-15 * time.Minute),
+	// Default tenant settings
+	svc.tenantSettings["default_tenant"] = &TenantMeetingSettings{
+		TenantID:         "default_tenant",
+		DefaultBotName:   "Patter AI Assistant",
+		DefaultAvatarURL: "https://patter.ai/assets/avatar_white_label.png",
+		DefaultLanguage:  "fr",
+		TranscriptionOptions: TranscriptionOptions{
+			Provider: "assemblyai",
+			Language: "fr",
+		},
+		AutomaticLeave: AutomaticLeaveOptions{
+			EveryoneLeftTimeoutSec: 60,
+			SilenceTimeoutSec:      300,
+			MaxDurationMinutes:     180,
+			LeaveWhenHostLeaves:    true,
+		},
+		VideoOptions: VideoOptions{
+			Layout:     "speaker",
+			Resolution: "1080p",
+		},
+		WebhookEvents: []string{"bot.status_change", "transcript.chunk", "recording.done"},
 	}
 
 	return svc
+}
+
+func (s *recallAIService) SaveTenantMeetingSettings(ctx context.Context, tenantID string, settings TenantMeetingSettings) (*TenantMeetingSettings, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	settings.TenantID = tenantID
+	s.tenantSettings[tenantID] = &settings
+	return &settings, nil
+}
+
+func (s *recallAIService) GetTenantMeetingSettings(ctx context.Context, tenantID string) (*TenantMeetingSettings, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	settings, ok := s.tenantSettings[tenantID]
+	if !ok {
+		return &TenantMeetingSettings{
+			TenantID:         tenantID,
+			DefaultBotName:   "Patter AI Agent",
+			DefaultLanguage:  "fr",
+			TranscriptionOptions: TranscriptionOptions{
+				Provider: "assemblyai",
+				Language: "fr",
+			},
+			AutomaticLeave: AutomaticLeaveOptions{
+				EveryoneLeftTimeoutSec: 60,
+				SilenceTimeoutSec:      300,
+			},
+		}, nil
+	}
+	return settings, nil
 }
 
 func (s *recallAIService) CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error) {
@@ -208,14 +266,30 @@ func (s *recallAIService) ListMeetingProfiles(ctx context.Context, tenantID stri
 
 func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error) {
 	botID := "bot_" + uuid.New().String()[:8]
-	if req.BotName == "" {
-		req.BotName = "Patter AI Agent"
+
+	tenantCfg, _ := s.GetTenantMeetingSettings(ctx, tenantID)
+
+	botName := req.BotName
+	if botName == "" {
+		botName = tenantCfg.DefaultBotName
 	}
-	if req.Language == "" {
-		req.Language = "fr"
+	avatarURL := req.AvatarURL
+	if avatarURL == "" {
+		avatarURL = tenantCfg.DefaultAvatarURL
 	}
-	if req.RecordingMode == "" {
-		req.RecordingMode = RecordingSpeakerView
+	lang := req.Language
+	if lang == "" {
+		lang = tenantCfg.DefaultLanguage
+	}
+
+	trxOpts := tenantCfg.TranscriptionOptions
+	if req.TranscriptionOptions != nil {
+		trxOpts = *req.TranscriptionOptions
+	}
+
+	autoLeave := tenantCfg.AutomaticLeave
+	if req.AutomaticLeave != nil {
+		autoLeave = *req.AutomaticLeave
 	}
 
 	bot := &MeetingBotResponse{
@@ -223,13 +297,15 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 		TenantID:                tenantID,
 		ProfileID:               req.ProfileID,
 		MeetingURL:              req.MeetingURL,
-		BotName:                 req.BotName,
-		AvatarURL:               req.AvatarURL,
+		BotName:                 botName,
+		AvatarURL:               avatarURL,
 		Platform:                req.Platform,
 		Status:                  StatusJoining,
-		Language:                req.Language,
+		Language:                lang,
 		RecordingMode:           req.RecordingMode,
 		AudioStreamWebSocketURL: fmt.Sprintf("wss://recall.ai/ws/audio/%s", botID),
+		TranscriptionOptions:    trxOpts,
+		AutomaticLeave:          autoLeave,
 		CreatedAt:               time.Now(),
 	}
 
@@ -240,15 +316,16 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 	if s.apiKey != "" {
 		payload, _ := json.Marshal(map[string]interface{}{
 			"meeting_url": req.MeetingURL,
-			"bot_name":    req.BotName,
-			"avatar_url":  req.AvatarURL,
+			"bot_name":    botName,
+			"avatar_url":  avatarURL,
 			"transcription_options": map[string]interface{}{
-				"provider": "assemblyai",
-				"language": req.Language,
+				"provider": trxOpts.Provider,
+				"language": lang,
 			},
 			"recording_mode": string(req.RecordingMode),
 			"automatic_leave": map[string]interface{}{
-				"everyone_left_timeout": 60,
+				"everyone_left_timeout": autoLeave.EveryoneLeftTimeoutSec,
+				"silence_timeout":       autoLeave.SilenceTimeoutSec,
 			},
 		})
 		httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.recall.ai/api/v1/bot", bytes.NewBuffer(payload))

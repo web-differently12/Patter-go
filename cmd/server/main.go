@@ -82,6 +82,9 @@ func main() {
 		// Contract-First TypeScript Schema Endpoint
 		api.GET("/schema/typescript", core.ServeTypeScriptSchema)
 
+		// n8n / Make.com Community Node 1-Click Schema Endpoint
+		api.GET("/integrations/n8n/node-schema", mcpController.GetN8NCommunityNodeSchema)
+
 		// Instances
 		api.POST("/instances", instController.CreateInstance)
 		api.GET("/instances", instController.ListInstances)
