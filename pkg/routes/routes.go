@@ -12,7 +12,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// SetupRouter registers endpoints for telephony, agents, admin BYOK configuration, and white-label gateway APIs
+// SetupRouter registers endpoints for telephony, agents, admin BYOK configuration, and gateway APIs
 func SetupRouter(tc *telephony.CallController, ac *telephony.AgentController, se *engine.StreamEngine) *gin.Engine {
 	r := gin.Default()
 
@@ -46,7 +46,7 @@ func SetupRouter(tc *telephony.CallController, ac *telephony.AgentController, se
 		adminGroup.GET("/tenants/:tenant_id/branding", adminCtrl.GetTenantBranding)
 	}
 
-	// 2. WHITE-LABEL GATEWAY SPACE (`/api/v1/gateway/...`) - Protected by Tenant Context Middleware
+	// 2. GATEWAY SPACE (`/api/v1/gateway/...`) - Protected by Tenant Context Middleware
 	gatewayGroup := r.Group("/api/v1/gateway")
 	gatewayGroup.Use(middleware.TenantContextMiddleware())
 	{

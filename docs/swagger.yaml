@@ -3,10 +3,10 @@ definitions:
   dto.AvatarLiveRequest:
     properties:
       face_url:
-        example: https://acme.com/avatar.png
+        example: https://client.com/avatar.png
         type: string
       voice_id:
-        example: alloy
+        example: custom_voice_1
         type: string
     required:
     - face_url
@@ -18,7 +18,7 @@ definitions:
       script_text:
         type: string
       voice_id:
-        example: alloy
+        example: custom_voice_1
         type: string
     required:
     - face_url
@@ -26,6 +26,10 @@ definitions:
     type: object
   dto.BrainChatRequest:
     properties:
+      brain_tier:
+        description: '"fast", "smart", "expert"'
+        example: smart
+        type: string
       channel:
         description: whatsapp, sms, webchat
         example: whatsapp
@@ -42,8 +46,8 @@ definitions:
     type: object
   dto.BrainChatResponse:
     properties:
-      model_used:
-        example: openrouter/gpt-4o
+      processing_tier:
+        example: enterprise_smart
         type: string
       reply:
         example: 'Your order #1234 is currently in transit.'
@@ -52,22 +56,22 @@ definitions:
   dto.MeetingBotRequest:
     properties:
       bot_name:
-        example: Patter AI Assistant
+        example: AI Executive Assistant
         type: string
       meeting_url:
-        example: https://meet.google.com/abc-defg-hij
+        example: https://meet.client.com/abc-defg-hij
         type: string
     required:
     - meeting_url
     type: object
   dto.MeetingScheduleRequest:
     properties:
-      provider:
-        description: livekit_webrtc, dyte
-        example: livekit_webrtc
-        type: string
       room_name:
-        example: acme-strategy-sync
+        example: strategy-sync
+        type: string
+      tier:
+        description: '"interactive_webrtc", "high_capacity"'
+        example: interactive_webrtc
         type: string
     required:
     - room_name
@@ -201,6 +205,9 @@ definitions:
         type: string
       target_number:
         example: "+15550199"
+        type: string
+      voice_tier:
+        example: premium_hd
         type: string
     required:
     - prompt
@@ -375,13 +382,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.TenantBrandingDTO'
-      summary: Get Tenant White-Label Branding
+      summary: Get Tenant Branding
       tags:
       - Admin - Tenant Configuration
   /api/v1/admin/tenants/{tenant_id}/config:
     get:
-      description: Returns the active provider API keys (Twilio, Telnyx, Simli, OpenRouter,
-        ElevenLabs, AssemblyAI, LiveKit) for the tenant
+      description: Returns the active provider API keys for the tenant
       parameters:
       - description: Tenant Identifier
         in: path
@@ -399,7 +405,7 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/telephony.ErrorResponse'
-      summary: Get Tenant BYOK Configuration
+      summary: Get Tenant Configuration
       tags:
       - Admin - Tenant Configuration
     put:
@@ -429,7 +435,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/telephony.ErrorResponse'
-      summary: Update Tenant BYOK Configuration
+      summary: Update Tenant Configuration
       tags:
       - Admin - Tenant Configuration
   /api/v1/agents:
@@ -539,7 +545,7 @@ paths:
       consumes:
       - application/json
       description: Generates a WebRTC join token for interactive real-time avatar
-        streams (Simli/MuseTalk)
+        streams
       parameters:
       - description: Session Specs
         in: body
@@ -587,8 +593,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Handles text processing for SMS, WhatsApp, and Webchat via LLM
-        with CRM context
+      description: Handles text processing for SMS, WhatsApp, and Webchat via central
+        AI brain with CRM context
       parameters:
       - description: Chat Request Data
         in: body
@@ -608,8 +614,8 @@ paths:
       - Gateway - Brain
   /api/v1/gateway/brain/report:
     post:
-      description: Fetches structured LeMUR v3 reports including BANT scores and Action
-        Items
+      description: Fetches structured AI meeting intelligence reports including BANT
+        scores and Action Items
       produces:
       - application/json
       responses:
@@ -619,15 +625,14 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Retrieve LeMUR v3 Meeting Report
+      summary: Retrieve Meeting Intelligence Report
       tags:
       - Gateway - Brain
   /api/v1/gateway/meeting/bot:
     post:
       consumes:
       - application/json
-      description: Dispatches an autonomous Recall.ai AI bot to join external video
-        calls
+      description: Dispatches an autonomous AI bot to join external video calls
       parameters:
       - description: Bot Details
         in: body
@@ -780,7 +785,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Initiates an outbound voice call using tenant's BYOK credentials
+      description: Initiates an outbound voice call using tenant credentials
       parameters:
       - description: Call Details
         in: body
@@ -821,15 +826,14 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Launch Mass WhatsApp HSM Campaign
+      summary: Launch Mass WhatsApp Campaign
       tags:
       - Gateway - WhatsApp
   /api/v1/gateway/whatsapp/send:
     post:
       consumes:
       - application/json
-      description: Routes individual WhatsApp message to the tenant's Evolution Go
-        server
+      description: Routes individual WhatsApp message for the client tenant
       parameters:
       - description: Message Details
         in: body
@@ -851,7 +855,7 @@ paths:
       - Gateway - WhatsApp
   /api/v1/gateway/whatsapp/templates:
     get:
-      description: Returns Meta-approved message templates for the tenant's account
+      description: Returns approved message templates for the tenant's account
       produces:
       - application/json
       responses:
@@ -869,7 +873,7 @@ paths:
       consumes:
       - application/json
       description: Webhook endpoint receiving inbound WhatsApp messages and status
-        updates from Evolution Go
+        updates
       produces:
       - application/json
       responses:

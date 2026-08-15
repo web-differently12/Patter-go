@@ -33,7 +33,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin - Tenant Configuration"
                 ],
-                "summary": "Get Tenant White-Label Branding",
+                "summary": "Get Tenant Branding",
                 "parameters": [
                     {
                         "type": "string",
@@ -55,14 +55,14 @@ const docTemplate = `{
         },
         "/api/v1/admin/tenants/{tenant_id}/config": {
             "get": {
-                "description": "Returns the active provider API keys (Twilio, Telnyx, Simli, OpenRouter, ElevenLabs, AssemblyAI, LiveKit) for the tenant",
+                "description": "Returns the active provider API keys for the tenant",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Admin - Tenant Configuration"
                 ],
-                "summary": "Get Tenant BYOK Configuration",
+                "summary": "Get Tenant Configuration",
                 "parameters": [
                     {
                         "type": "string",
@@ -98,7 +98,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin - Tenant Configuration"
                 ],
-                "summary": "Update Tenant BYOK Configuration",
+                "summary": "Update Tenant Configuration",
                 "parameters": [
                     {
                         "type": "string",
@@ -284,7 +284,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/avatar/live": {
             "post": {
-                "description": "Generates a WebRTC join token for interactive real-time avatar streams (Simli/MuseTalk)",
+                "description": "Generates a WebRTC join token for interactive real-time avatar streams",
                 "consumes": [
                     "application/json"
                 ],
@@ -358,7 +358,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/brain/chat": {
             "post": {
-                "description": "Handles text processing for SMS, WhatsApp, and Webchat via LLM with CRM context",
+                "description": "Handles text processing for SMS, WhatsApp, and Webchat via central AI brain with CRM context",
                 "consumes": [
                     "application/json"
                 ],
@@ -392,14 +392,14 @@ const docTemplate = `{
         },
         "/api/v1/gateway/brain/report": {
             "post": {
-                "description": "Fetches structured LeMUR v3 reports including BANT scores and Action Items",
+                "description": "Fetches structured AI meeting intelligence reports including BANT scores and Action Items",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Gateway - Brain"
                 ],
-                "summary": "Retrieve LeMUR v3 Meeting Report",
+                "summary": "Retrieve Meeting Intelligence Report",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -415,7 +415,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/meeting/bot": {
             "post": {
-                "description": "Dispatches an autonomous Recall.ai AI bot to join external video calls",
+                "description": "Dispatches an autonomous AI bot to join external video calls",
                 "consumes": [
                     "application/json"
                 ],
@@ -646,7 +646,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/voice/outbound": {
             "post": {
-                "description": "Initiates an outbound voice call using tenant's BYOK credentials",
+                "description": "Initiates an outbound voice call using tenant credentials",
                 "consumes": [
                     "application/json"
                 ],
@@ -693,7 +693,7 @@ const docTemplate = `{
                 "tags": [
                     "Gateway - WhatsApp"
                 ],
-                "summary": "Launch Mass WhatsApp HSM Campaign",
+                "summary": "Launch Mass WhatsApp Campaign",
                 "parameters": [
                     {
                         "description": "Campaign Specs",
@@ -720,7 +720,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/whatsapp/send": {
             "post": {
-                "description": "Routes individual WhatsApp message to the tenant's Evolution Go server",
+                "description": "Routes individual WhatsApp message for the client tenant",
                 "consumes": [
                     "application/json"
                 ],
@@ -757,7 +757,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/whatsapp/templates": {
             "get": {
-                "description": "Returns Meta-approved message templates for the tenant's account",
+                "description": "Returns approved message templates for the tenant's account",
                 "produces": [
                     "application/json"
                 ],
@@ -780,7 +780,7 @@ const docTemplate = `{
         },
         "/api/v1/gateway/whatsapp/webhook": {
             "post": {
-                "description": "Webhook endpoint receiving inbound WhatsApp messages and status updates from Evolution Go",
+                "description": "Webhook endpoint receiving inbound WhatsApp messages and status updates",
                 "consumes": [
                     "application/json"
                 ],
@@ -814,11 +814,11 @@ const docTemplate = `{
             "properties": {
                 "face_url": {
                     "type": "string",
-                    "example": "https://acme.com/avatar.png"
+                    "example": "https://client.com/avatar.png"
                 },
                 "voice_id": {
                     "type": "string",
-                    "example": "alloy"
+                    "example": "custom_voice_1"
                 }
             }
         },
@@ -837,7 +837,7 @@ const docTemplate = `{
                 },
                 "voice_id": {
                     "type": "string",
-                    "example": "alloy"
+                    "example": "custom_voice_1"
                 }
             }
         },
@@ -847,6 +847,11 @@ const docTemplate = `{
                 "message"
             ],
             "properties": {
+                "brain_tier": {
+                    "description": "\"fast\", \"smart\", \"expert\"",
+                    "type": "string",
+                    "example": "smart"
+                },
                 "channel": {
                     "description": "whatsapp, sms, webchat",
                     "type": "string",
@@ -867,9 +872,9 @@ const docTemplate = `{
         "dto.BrainChatResponse": {
             "type": "object",
             "properties": {
-                "model_used": {
+                "processing_tier": {
                     "type": "string",
-                    "example": "openrouter/gpt-4o"
+                    "example": "enterprise_smart"
                 },
                 "reply": {
                     "type": "string",
@@ -885,11 +890,11 @@ const docTemplate = `{
             "properties": {
                 "bot_name": {
                     "type": "string",
-                    "example": "Patter AI Assistant"
+                    "example": "AI Executive Assistant"
                 },
                 "meeting_url": {
                     "type": "string",
-                    "example": "https://meet.google.com/abc-defg-hij"
+                    "example": "https://meet.client.com/abc-defg-hij"
                 }
             }
         },
@@ -899,14 +904,14 @@ const docTemplate = `{
                 "room_name"
             ],
             "properties": {
-                "provider": {
-                    "description": "livekit_webrtc, dyte",
-                    "type": "string",
-                    "example": "livekit_webrtc"
-                },
                 "room_name": {
                     "type": "string",
-                    "example": "acme-strategy-sync"
+                    "example": "strategy-sync"
+                },
+                "tier": {
+                    "description": "\"interactive_webrtc\", \"high_capacity\"",
+                    "type": "string",
+                    "example": "interactive_webrtc"
                 }
             }
         },
@@ -1094,6 +1099,10 @@ const docTemplate = `{
                 "target_number": {
                     "type": "string",
                     "example": "+15550199"
+                },
+                "voice_tier": {
+                    "type": "string",
+                    "example": "premium_hd"
                 }
             }
         },

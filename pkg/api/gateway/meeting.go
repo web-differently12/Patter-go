@@ -14,7 +14,7 @@ func NewMeetingGatewayController() *MeetingGatewayController {
 	return &MeetingGatewayController{}
 }
 
-// Schedule creates a new WebRTC meeting room (LiveKit / Dyte)
+// Schedule creates a new WebRTC meeting room
 // @Summary Schedule WebRTC Meeting Room
 // @Description Creates a new interactive WebRTC meeting room
 // @Tags Gateway - Meeting
@@ -32,15 +32,15 @@ func (m *MeetingGatewayController) Schedule(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"room_name":    req.RoomName,
-		"provider":     req.Provider,
-		"livekit_url":  "wss://livekit.example.com",
-		"access_token": "token_lk_9999",
+		"tier":         req.Tier,
+		"join_url":     "wss://meet.example.com",
+		"access_token": "token_meet_9999",
 	})
 }
 
-// Bot deploys a Recall.ai bot to join external Google Meet / Zoom / Teams calls
+// Bot deploys an AI assistant bot to join external calls
 // @Summary Deploy Meeting Bot
-// @Description Dispatches an autonomous Recall.ai AI bot to join external video calls
+// @Description Dispatches an autonomous AI bot to join external video calls
 // @Tags Gateway - Meeting
 // @Accept json
 // @Produce json
@@ -55,7 +55,7 @@ func (m *MeetingGatewayController) Bot(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusAccepted, gin.H{
-		"bot_id":      "bot_recall_555",
+		"bot_id":      "bot_ai_555",
 		"meeting_url": req.MeetingURL,
 		"status":      "bot_dispatching_to_call",
 	})

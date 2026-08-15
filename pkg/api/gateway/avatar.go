@@ -16,7 +16,7 @@ func NewAvatarGatewayController() *AvatarGatewayController {
 
 // Live generates a WebRTC live session token for interactive avatar conversation
 // @Summary Start Live WebRTC Avatar Session
-// @Description Generates a WebRTC join token for interactive real-time avatar streams (Simli/MuseTalk)
+// @Description Generates a WebRTC join token for interactive real-time avatar streams
 // @Tags Gateway - Avatar
 // @Accept json
 // @Produce json
@@ -31,7 +31,7 @@ func (a *AvatarGatewayController) Live(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"session_id": "simli_sess_12345",
+		"session_id": "avatar_sess_12345",
 		"room_name":  "room_avatar_1",
 		"join_token": "token_webrtc_secret",
 	})

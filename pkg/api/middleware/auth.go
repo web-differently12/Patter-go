@@ -15,7 +15,7 @@ type TenantContext struct {
 	Role     string
 }
 
-// AdminAuthMiddleware validates Lynxflow admin secret or JWT token for tenant configuration access
+// AdminAuthMiddleware validates admin credentials for tenant configuration access
 func AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		adminKey := c.GetHeader("X-Admin-Secret")
@@ -29,7 +29,6 @@ func AdminAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Proceed with admin request
 		c.Next()
 	}
 }
@@ -48,7 +47,7 @@ func TenantContextMiddleware() gin.HandlerFunc {
 
 		ctx := TenantContext{
 			TenantID: tenantID,
-			Role:     "white_label_client",
+			Role:     "client",
 		}
 
 		c.Set(TenantContextKey, ctx)

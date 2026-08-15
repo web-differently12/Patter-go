@@ -15,8 +15,8 @@ func NewAdminController() *AdminController {
 }
 
 // GetTenantConfig returns the active BYOK provider configuration for a tenant
-// @Summary Get Tenant BYOK Configuration
-// @Description Returns the active provider API keys (Twilio, Telnyx, Simli, OpenRouter, ElevenLabs, AssemblyAI, LiveKit) for the tenant
+// @Summary Get Tenant Configuration
+// @Description Returns the active provider API keys for the tenant
 // @Tags Admin - Tenant Configuration
 // @Produce json
 // @Param tenant_id path string true "Tenant Identifier"
@@ -37,7 +37,7 @@ func (a *AdminController) GetTenantConfig(c *gin.Context) {
 }
 
 // UpdateTenantConfig updates BYOK provider API keys for a tenant
-// @Summary Update Tenant BYOK Configuration
+// @Summary Update Tenant Configuration
 // @Description Updates active API keys and endpoints for a tenant
 // @Tags Admin - Tenant Configuration
 // @Accept json
@@ -58,8 +58,8 @@ func (a *AdminController) UpdateTenantConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, req)
 }
 
-// GetTenantBranding returns White-Label branding parameters for a tenant
-// @Summary Get Tenant White-Label Branding
+// GetTenantBranding returns branding parameters for a tenant
+// @Summary Get Tenant Branding
 // @Description Returns custom domain, logo, display name, and voice default settings
 // @Tags Admin - Tenant Configuration
 // @Produce json

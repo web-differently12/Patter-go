@@ -18,7 +18,7 @@ func NewVoiceGatewayController() *VoiceGatewayController {
 
 // Outbound initiates an individual outbound call for a tenant
 // @Summary Trigger Individual Outbound Call
-// @Description Initiates an outbound voice call using tenant's BYOK credentials
+// @Description Initiates an outbound voice call using tenant credentials
 // @Tags Gateway - Voice
 // @Accept json
 // @Produce json
@@ -57,11 +57,11 @@ func (v *VoiceGatewayController) Campaign(c *gin.Context) {
 	// Calculate jitter delays for mass dispatching
 	go func() {
 		for _, num := range req.TargetNumbers {
-			minJitter := req.MinJitterSecSec
+			minJitter := req.MinJitterSec
 			if minJitter <= 0 {
 				minJitter = 3
 			}
-			maxJitter := req.MaxJitterSecSec
+			maxJitter := req.MaxJitterSec
 			if maxJitter <= minJitter {
 				maxJitter = minJitter + 5
 			}

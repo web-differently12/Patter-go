@@ -14,9 +14,9 @@ func NewWhatsAppGatewayController() *WhatsAppGatewayController {
 	return &WhatsAppGatewayController{}
 }
 
-// Send sends an individual WhatsApp message via Evolution Go API
+// Send sends an individual WhatsApp message
 // @Summary Send Individual WhatsApp Message
-// @Description Routes individual WhatsApp message to the tenant's Evolution Go server
+// @Description Routes individual WhatsApp message for the client tenant
 // @Tags Gateway - WhatsApp
 // @Accept json
 // @Produce json
@@ -31,14 +31,13 @@ func (w *WhatsAppGatewayController) Send(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":      "sent",
-		"message_id":  "wa_msg_12345",
-		"evolution_go": "routed_to_evolution_go_server",
+		"status":     "sent",
+		"message_id": "wa_msg_12345",
 	})
 }
 
-// Campaign launches a mass WhatsApp campaign using Meta HSM templates
-// @Summary Launch Mass WhatsApp HSM Campaign
+// Campaign launches a mass WhatsApp campaign using approved templates
+// @Summary Launch Mass WhatsApp Campaign
 // @Description Dispatches template-approved WhatsApp messages to a list of recipients
 // @Tags Gateway - WhatsApp
 // @Accept json
@@ -60,9 +59,9 @@ func (w *WhatsAppGatewayController) Campaign(c *gin.Context) {
 	})
 }
 
-// GetTemplates lists approved WhatsApp HSM templates
+// GetTemplates lists approved WhatsApp templates
 // @Summary List Approved WhatsApp Templates
-// @Description Returns Meta-approved message templates for the tenant's account
+// @Description Returns approved message templates for the tenant's account
 // @Tags Gateway - WhatsApp
 // @Produce json
 // @Success 200 {object} map[string]string
@@ -71,9 +70,9 @@ func (w *WhatsAppGatewayController) GetTemplates(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "approved_templates_retrieved"})
 }
 
-// Webhook receives incoming WhatsApp messages from Evolution Go
+// Webhook receives incoming WhatsApp messages
 // @Summary WhatsApp Inbound Webhook
-// @Description Webhook endpoint receiving inbound WhatsApp messages and status updates from Evolution Go
+// @Description Webhook endpoint receiving inbound WhatsApp messages and status updates
 // @Tags Gateway - WhatsApp
 // @Accept json
 // @Produce json

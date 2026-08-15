@@ -5,25 +5,27 @@ type BrainChatRequest struct {
 	Message    string            `json:"message" binding:"required" example:"Hello, what is my order status?"`
 	Channel    string            `json:"channel" example:"whatsapp"` // whatsapp, sms, webchat
 	ContextCRM map[string]string `json:"context_crm,omitempty"`
+	BrainTier  string            `json:"brain_tier,omitempty" example:"smart"` // "fast", "smart", "expert"
 }
 
 type BrainChatResponse struct {
-	Reply     string `json:"reply" example:"Your order #1234 is currently in transit."`
-	ModelUsed string `json:"model_used" example:"openrouter/gpt-4o"`
+	Reply          string `json:"reply" example:"Your order #1234 is currently in transit."`
+	ProcessingTier string `json:"processing_tier" example:"enterprise_smart"`
 }
 
 // Voice DTOs
 type VoiceOutboundRequest struct {
 	TargetNumber string `json:"target_number" binding:"required" example:"+15550199"`
 	Prompt       string `json:"prompt" binding:"required" example:"You are a friendly appointment reminder."`
+	VoiceTier    string `json:"voice_tier,omitempty" example:"premium_hd"`
 }
 
 type VoiceCampaignRequest struct {
-	Name            string   `json:"name" binding:"required" example:"Q3 Renewal Campaign"`
-	TargetNumbers   []string `json:"target_numbers" binding:"required"`
-	Prompt          string   `json:"prompt" binding:"required"`
-	MinJitterSecSec int      `json:"min_jitter_sec" example:"5"`  // Anti-spam delay jitter
-	MaxJitterSecSec int      `json:"max_jitter_sec" example:"15"` // Anti-spam delay jitter
+	Name         string   `json:"name" binding:"required" example:"Q3 Renewal Campaign"`
+	TargetNumbers []string `json:"target_numbers" binding:"required"`
+	Prompt       string   `json:"prompt" binding:"required"`
+	MinJitterSec int      `json:"min_jitter_sec" example:"5"`  // Anti-spam delay jitter
+	MaxJitterSec int      `json:"max_jitter_sec" example:"15"` // Anti-spam delay jitter
 }
 
 // WhatsApp DTOs
@@ -55,23 +57,23 @@ type MessageCampaignRequest struct {
 
 // Avatar DTOs
 type AvatarLiveRequest struct {
-	FaceURL string `json:"face_url" binding:"required" example:"https://acme.com/avatar.png"`
-	VoiceID string `json:"voice_id" example:"alloy"`
+	FaceURL string `json:"face_url" binding:"required" example:"https://client.com/avatar.png"`
+	VoiceID string `json:"voice_id" example:"custom_voice_1"`
 }
 
 type AvatarOfflineRequest struct {
 	FaceURL    string `json:"face_url" binding:"required"`
 	ScriptText string `json:"script_text" binding:"required"`
-	VoiceID    string `json:"voice_id" example:"alloy"`
+	VoiceID    string `json:"voice_id" example:"custom_voice_1"`
 }
 
 // Meeting DTOs
 type MeetingScheduleRequest struct {
-	RoomName string `json:"room_name" binding:"required" example:"acme-strategy-sync"`
-	Provider string `json:"provider" example:"livekit_webrtc"` // livekit_webrtc, dyte
+	RoomName string `json:"room_name" binding:"required" example:"strategy-sync"`
+	Tier     string `json:"tier" example:"interactive_webrtc"` // "interactive_webrtc", "high_capacity"
 }
 
 type MeetingBotRequest struct {
-	MeetingURL string `json:"meeting_url" binding:"required" example:"https://meet.google.com/abc-defg-hij"`
-	BotName    string `json:"bot_name" example:"Patter AI Assistant"`
+	MeetingURL string `json:"meeting_url" binding:"required" example:"https://meet.client.com/abc-defg-hij"`
+	BotName    string `json:"bot_name" example:"AI Executive Assistant"`
 }
