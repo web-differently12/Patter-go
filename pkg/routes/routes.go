@@ -37,16 +37,16 @@ func SetupRouter(tc *telephony.CallController, ac *telephony.AgentController, se
 	avatarCtrl := gateway.NewAvatarGatewayController()
 	meetingCtrl := gateway.NewMeetingGatewayController()
 
-	// 1. ADMIN SPACE (`/api/v1/admin/...`)
+	// 1. ADMIN SPACE (`/api/v1/admin/...`) - Protected strictly by Better-Auth Admin Middleware
 	adminGroup := r.Group("/api/v1/admin")
-	adminGroup.Use(middleware.AdminAuthMiddleware())
+	adminGroup.Use(middleware.BetterAuthAdminMiddleware())
 	{
 		adminGroup.GET("/tenants/:tenant_id/config", adminCtrl.GetTenantConfig)
 		adminGroup.PUT("/tenants/:tenant_id/config", adminCtrl.UpdateTenantConfig)
 		adminGroup.GET("/tenants/:tenant_id/branding", adminCtrl.GetTenantBranding)
 	}
 
-	// 2. WHITE-LABEL GATEWAY SPACE (`/api/v1/gateway/...`)
+	// 2. WHITE-LABEL GATEWAY SPACE (`/api/v1/gateway/...`) - Protected by Tenant Context Middleware
 	gatewayGroup := r.Group("/api/v1/gateway")
 	gatewayGroup.Use(middleware.TenantContextMiddleware())
 	{
