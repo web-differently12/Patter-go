@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,8 +42,25 @@ const (
 	StatusFailed    BotStatus = "failed"
 )
 
+type MeetingProfile struct {
+	ProfileID                     string `json:"profile_id"`
+	TenantID                      string `json:"tenant_id"`
+	Name                          string `json:"name" binding:"required"`
+	EnableSpeakerDiarization      bool   `json:"enable_speaker_diarization"`
+	EnableActionItemsExtraction   bool   `json:"enable_action_items_extraction"`
+	EnableParticipantSentiment    bool   `json:"enable_participant_sentiment"`
+	EnableLiveTranslation         bool   `json:"enable_live_translation"`
+	TargetTranslationLanguage     string `json:"target_translation_language,omitempty"` // "en", "fr", "es", "de"
+	EnableScreenShareRecording    bool   `json:"enable_screen_share_recording"`
+	SummaryTemplate               string `json:"summary_template"`               // "BANT_QUALIFICATION", "EXECUTIVE_SUMMARY", "TECHNICAL_ACTION_ITEMS"
+	AutoLeaveOnSilenceMinutes     int    `json:"auto_leave_on_silence_minutes"`
+	AutoLeaveWhenEveryoneLeft     bool   `json:"auto_leave_when_everyone_left"`
+	CustomAvatarVideoURL          string `json:"custom_avatar_video_url,omitempty"`
+}
+
 type CreateMeetingBotRequest struct {
 	MeetingURL                string          `json:"meeting_url" binding:"required"`
+	ProfileID                 string          `json:"profile_id,omitempty"`
 	BotName                   string          `json:"bot_name,omitempty"`
 	AvatarURL                 string          `json:"avatar_url,omitempty"`
 	Platform                  MeetingPlatform `json:"platform,omitempty"`
@@ -65,6 +83,7 @@ type SendMeetingChatMessageRequest struct {
 type MeetingBotResponse struct {
 	BotID                   string          `json:"bot_id"`
 	TenantID                string          `json:"tenant_id"`
+	ProfileID               string          `json:"profile_id,omitempty"`
 	MeetingURL              string          `json:"meeting_url"`
 	BotName                 string          `json:"bot_name"`
 	AvatarURL               string          `json:"avatar_url,omitempty"`
@@ -79,6 +98,9 @@ type MeetingBotResponse struct {
 }
 
 type RecallAIService interface {
+	CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error)
+	GetMeetingProfile(ctx context.Context, tenantID, profileID string) (*MeetingProfile, error)
+	ListMeetingProfiles(ctx context.Context, tenantID string) ([]*MeetingProfile, error)
 	CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error)
 	GetBotStatus(ctx context.Context, tenantID, botID string) (*MeetingBotResponse, error)
 	ListBots(ctx context.Context, tenantID string) ([]*MeetingBotResponse, error)
@@ -90,6 +112,8 @@ type recallAIService struct {
 	apiKey     string
 	httpClient *http.Client
 	logger     *slog.Logger
+	mu         sync.RWMutex
+	profiles   map[string]*MeetingProfile
 	bots       map[string]*MeetingBotResponse
 }
 
@@ -101,14 +125,32 @@ func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
 		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 		logger:     logger.With("component", "recall_ai"),
+		profiles:   make(map[string]*MeetingProfile),
 		bots:       make(map[string]*MeetingBotResponse),
 	}
 
-	// Pre-populate mock meeting bot
+	// Pre-populate default Meeting Profile
+	defaultProfID := "mp_executive_pro"
+	svc.profiles["default_tenant:"+defaultProfID] = &MeetingProfile{
+		ProfileID:                   defaultProfID,
+		TenantID:                    "default_tenant",
+		Name:                        "Profil Exécutif — Diarisation & Actions",
+		EnableSpeakerDiarization:    true,
+		EnableActionItemsExtraction: true,
+		EnableParticipantSentiment:  true,
+		EnableLiveTranslation:       true,
+		TargetTranslationLanguage:   "fr",
+		EnableScreenShareRecording:  true,
+		SummaryTemplate:             "EXECUTIVE_SUMMARY",
+		AutoLeaveOnSilenceMinutes:   5,
+		AutoLeaveWhenEveryoneLeft:   true,
+	}
+
 	mockID := "bot_meet_101"
 	svc.bots["default_tenant:"+mockID] = &MeetingBotResponse{
 		BotID:                   mockID,
 		TenantID:                "default_tenant",
+		ProfileID:               defaultProfID,
 		MeetingURL:              "https://meet.google.com/abc-defg-hij",
 		BotName:                 "Patter AI Assistant",
 		AvatarURL:               "https://patter.ai/assets/avatar_white_label.png",
@@ -123,6 +165,45 @@ func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
 	}
 
 	return svc
+}
+
+func (s *recallAIService) CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	profID := "mp_" + uuid.New().String()[:8]
+	prof.ProfileID = profID
+	prof.TenantID = tenantID
+	if prof.SummaryTemplate == "" {
+		prof.SummaryTemplate = "EXECUTIVE_SUMMARY"
+	}
+
+	s.profiles[tenantID+":"+profID] = &prof
+	return &prof, nil
+}
+
+func (s *recallAIService) GetMeetingProfile(ctx context.Context, tenantID, profileID string) (*MeetingProfile, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	prof, ok := s.profiles[tenantID+":"+profileID]
+	if !ok {
+		return nil, fmt.Errorf("meeting profile %s not found", profileID)
+	}
+	return prof, nil
+}
+
+func (s *recallAIService) ListMeetingProfiles(ctx context.Context, tenantID string) ([]*MeetingProfile, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []*MeetingProfile
+	for _, prof := range s.profiles {
+		if prof.TenantID == tenantID {
+			result = append(result, prof)
+		}
+	}
+	return result, nil
 }
 
 func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error) {
@@ -140,6 +221,7 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 	bot := &MeetingBotResponse{
 		BotID:                   botID,
 		TenantID:                tenantID,
+		ProfileID:               req.ProfileID,
 		MeetingURL:              req.MeetingURL,
 		BotName:                 req.BotName,
 		AvatarURL:               req.AvatarURL,
@@ -151,9 +233,10 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 		CreatedAt:               time.Now(),
 	}
 
+	s.mu.Lock()
 	s.bots[tenantID+":"+botID] = bot
+	s.mu.Unlock()
 
-	// Recall.ai API Max Integration
 	if s.apiKey != "" {
 		payload, _ := json.Marshal(map[string]interface{}{
 			"meeting_url": req.MeetingURL,
@@ -185,6 +268,9 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 }
 
 func (s *recallAIService) GetBotStatus(ctx context.Context, tenantID, botID string) (*MeetingBotResponse, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	bot, ok := s.bots[tenantID+":"+botID]
 	if !ok {
 		return nil, fmt.Errorf("bot %s not found for tenant %s", botID, tenantID)
@@ -193,6 +279,9 @@ func (s *recallAIService) GetBotStatus(ctx context.Context, tenantID, botID stri
 }
 
 func (s *recallAIService) ListBots(ctx context.Context, tenantID string) ([]*MeetingBotResponse, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	var result []*MeetingBotResponse
 	for _, bot := range s.bots {
 		if bot.TenantID == tenantID {
@@ -203,7 +292,10 @@ func (s *recallAIService) ListBots(ctx context.Context, tenantID string) ([]*Mee
 }
 
 func (s *recallAIService) SendChatMessage(ctx context.Context, tenantID string, req SendMeetingChatMessageRequest) error {
+	s.mu.RLock()
 	bot, ok := s.bots[tenantID+":"+req.BotID]
+	s.mu.RUnlock()
+
 	if !ok || bot.TenantID != tenantID {
 		return fmt.Errorf("bot %s not found", req.BotID)
 	}
@@ -212,6 +304,9 @@ func (s *recallAIService) SendChatMessage(ctx context.Context, tenantID string, 
 }
 
 func (s *recallAIService) LeaveMeeting(ctx context.Context, tenantID, botID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	bot, ok := s.bots[tenantID+":"+botID]
 	if !ok || bot.TenantID != tenantID {
 		return fmt.Errorf("bot %s not found", botID)

@@ -50,3 +50,36 @@ func TestRecallAIBotLifecycle(t *testing.T) {
 		t.Errorf("Expected StatusLeft, got %s", status.Status)
 	}
 }
+
+func TestMeetingProfileConfiguration(t *testing.T) {
+	svc := rtc.NewRecallAIService("", nil)
+	ctx := context.Background()
+
+	prof, err := svc.CreateMeetingProfile(ctx, "tenant_test", rtc.MeetingProfile{
+		Name:                        "Profil Visio Commercial BANT",
+		EnableSpeakerDiarization:    true,
+		EnableActionItemsExtraction: true,
+		EnableParticipantSentiment:  true,
+		EnableLiveTranslation:       true,
+		TargetTranslationLanguage:   "fr",
+		EnableScreenShareRecording:  true,
+		SummaryTemplate:             "BANT_QUALIFICATION",
+		AutoLeaveOnSilenceMinutes:   10,
+		AutoLeaveWhenEveryoneLeft:   true,
+	})
+
+	if err != nil {
+		t.Fatalf("Unexpected error creating meeting profile: %v", err)
+	}
+	if prof.ProfileID == "" {
+		t.Fatalf("Expected valid ProfileID")
+	}
+
+	fetched, err := svc.GetMeetingProfile(ctx, "tenant_test", prof.ProfileID)
+	if err != nil {
+		t.Fatalf("Unexpected error fetching meeting profile: %v", err)
+	}
+	if fetched.SummaryTemplate != "BANT_QUALIFICATION" {
+		t.Errorf("Expected BANT_QUALIFICATION summary template")
+	}
+}

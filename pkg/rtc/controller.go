@@ -15,6 +15,50 @@ func NewRecallController(svc RecallAIService) *RecallController {
 	return &RecallController{recallService: svc}
 }
 
+// CreateMeetingProfile godoc
+// @Summary      Créer un Profil de Visioconférence (Diarisation, Traduction, Sentiment, Résumé)
+// @Tags         Gateway - Meeting Bots (RTC)
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body MeetingProfile true "Configuration du Profil Visio"
+// @Success      200 {object} core.APIResponse{data=MeetingProfile}
+// @Router       /api/v1/gateway/rtc/profiles [post]
+func (ctrl *RecallController) CreateMeetingProfile(c *gin.Context) {
+	var req MeetingProfile
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.recallService.CreateMeetingProfile(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
+// ListMeetingProfiles godoc
+// @Summary      Lister les Profils de Visioconférence du Tenant
+// @Tags         Gateway - Meeting Bots (RTC)
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Success      200 {object} core.APIResponse{data=[]MeetingProfile}
+// @Router       /api/v1/gateway/rtc/profiles [get]
+func (ctrl *RecallController) ListMeetingProfiles(c *gin.Context) {
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.recallService.ListMeetingProfiles(c.Request.Context(), tenantID)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
 // CreateBot godoc
 // @Summary      Déployer un Bot d'Appel Visio (Zoom, Google Meet, MS Teams, Webex via Recall.ai)
 // @Tags         Gateway - Meeting Bots (RTC)

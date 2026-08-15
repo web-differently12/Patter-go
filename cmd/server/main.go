@@ -52,6 +52,7 @@ func main() {
 	router := gin.Default()
 	router.Use(core.CORSMiddleware())
 	router.Use(core.AuthMiddleware())
+	router.Use(core.TenantRLSMiddleware())
 
 	// Initialize Services
 	instSvc := instanceSvc.NewInstanceService()
@@ -78,6 +79,9 @@ func main() {
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
 	{
+		// Contract-First TypeScript Schema Endpoint
+		api.GET("/schema/typescript", core.ServeTypeScriptSchema)
+
 		// Instances
 		api.POST("/instances", instController.CreateInstance)
 		api.GET("/instances", instController.ListInstances)
@@ -89,13 +93,13 @@ func main() {
 		api.GET("/sip/trunks", sipController.ListTrunks)
 		api.POST("/sip/call", sipController.InitiateSIPCall)
 
-		// Model Context Protocol (MCP) Integration & Nango Bridge
+		// Model Context Protocol (MCP) Integration & Patter Bridge
 		api.POST("/mcp/servers", mcpController.RegisterServer)
 		api.GET("/mcp/servers", mcpController.ListServers)
 		api.GET("/mcp/servers/:id/tools", mcpController.ListTools)
 		api.POST("/mcp/tools/execute", mcpController.ExecuteTool)
 
-		// WhatsApp Evolution Proxy & Number Checker
+		// WhatsApp Engine Proxy & Number Checker
 		api.POST("/whatsapp/check-number", waController.CheckNumberExists)
 		api.POST("/whatsapp/connect", waController.ConnectSession)
 		api.GET("/whatsapp/qrcode", waController.GetQRCode)
@@ -113,8 +117,10 @@ func main() {
 		api.POST("/campaigns/:id/pause", campaignController.PauseCampaign)
 		api.POST("/campaigns/:id/resume", campaignController.ResumeCampaign)
 
-		// Voice Campaigns & Calls
+		// Voice Campaigns, Profiles & Calls
 		api.POST("/voice/campaign", campaignController.CreateVoiceCampaign)
+		api.POST("/voice/profiles", vController.CreateVoiceProfile)
+		api.GET("/voice/profiles", vController.ListVoiceProfiles)
 		api.POST("/voice/call", vController.InitiateCall)
 
 		// Messaging SMS/MMS & RCS
@@ -130,7 +136,9 @@ func main() {
 		api.POST("/brain/calendar/book", bController.CalendarBook)
 		api.POST("/brain/lemur/process", bController.ProcessLeMUR)
 
-		// Meeting Bots (Recall.ai Zoom / Google Meet / Teams / Webex)
+		// Meeting Bots & Profiles (Recall.ai Zoom / Google Meet / Teams / Webex)
+		api.POST("/rtc/profiles", recallController.CreateMeetingProfile)
+		api.GET("/rtc/profiles", recallController.ListMeetingProfiles)
 		api.POST("/rtc/bot", recallController.CreateBot)
 		api.GET("/rtc/bots", recallController.ListBots)
 		api.POST("/rtc/bots/:id/leave", recallController.LeaveMeeting)
