@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/lynxflow/patter-go/pkg/calendar"
 	"github.com/lynxflow/patter-go/pkg/core"
 	"github.com/lynxflow/patter-go/pkg/rag"
 	"github.com/lynxflow/patter-go/pkg/skills"
@@ -25,21 +26,26 @@ type BrainService interface {
 	QueryBrain(ctx context.Context, tenantID string, req QueryBrainRequest) (*QueryBrainResponse, error)
 	SearchRAG(ctx context.Context, tenantID, callSID, query string, cfg rag.KnowledgeBaseConfig) (*rag.SearchResult, error)
 	ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error)
+	CheckCalendarAvailability(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error)
+	BookCalendarAppointment(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error)
 }
 
 type brainService struct {
-	ragRouter   *rag.UnifiedRAGRouter
+	ragRouter     *rag.UnifiedRAGRouter
 	transferSkill *skills.HumanTransferSkill
+	calendarSkill *skills.CalendarBookingSkill
 }
 
 func NewBrainService() BrainService {
 	logger := core.GetLogger()
 	router := rag.NewUnifiedRAGRouter(nil, nil, logger)
 	skill := skills.NewHumanTransferSkill(nil, logger)
+	calSkill := skills.NewCalendarBookingSkill(nil, logger)
 
 	return &brainService{
-		ragRouter:   router,
+		ragRouter:     router,
 		transferSkill: skill,
+		calendarSkill: calSkill,
 	}
 }
 
@@ -58,4 +64,12 @@ func (s *brainService) SearchRAG(ctx context.Context, tenantID, callSID, query s
 
 func (s *brainService) ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error) {
 	return s.transferSkill.Execute(ctx, tenantID, callSID, rawArgs, destination)
+}
+
+func (s *brainService) CheckCalendarAvailability(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error) {
+	return s.calendarSkill.CheckAvailability(ctx, tenantID, rawArgs, cfg)
+}
+
+func (s *brainService) BookCalendarAppointment(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error) {
+	return s.calendarSkill.BookAppointment(ctx, tenantID, rawArgs, cfg)
 }

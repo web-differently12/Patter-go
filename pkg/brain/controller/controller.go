@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lynxflow/patter-go/pkg/brain/service"
+	"github.com/lynxflow/patter-go/pkg/calendar"
 	"github.com/lynxflow/patter-go/pkg/core"
 	"github.com/lynxflow/patter-go/pkg/rag"
 )
@@ -105,4 +106,61 @@ func (ctrl *BrainController) HumanTransfer(c *gin.Context) {
 	}
 
 	core.Success(c, gin.H{"status": result})
+}
+
+type CalendarRequest struct {
+	RawArgs string                  `json:"raw_args" binding:"required"`
+	Config  calendar.CalendarConfig `json:"config"`
+}
+
+// CalendarAvailability godoc
+// @Summary      Vérifier la disponibilité de l'agenda (Google Calendar, Outlook, Cal.com, Calendly)
+// @Tags         Gateway - Brain
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body CalendarRequest true "Arguments agenda"
+// @Success      200 {object} core.APIResponse
+// @Router       /api/v1/gateway/brain/calendar/availability [post]
+func (ctrl *BrainController) CalendarAvailability(c *gin.Context) {
+	var req CalendarRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	result, err := ctrl.brainService.CheckCalendarAvailability(c.Request.Context(), tenantID, req.RawArgs, req.Config)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, gin.H{"result": result})
+}
+
+// CalendarBook godoc
+// @Summary      Réserver un créneau dans l'agenda
+// @Tags         Gateway - Brain
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body CalendarRequest true "Arguments réservation"
+// @Success      200 {object} core.APIResponse
+// @Router       /api/v1/gateway/brain/calendar/book [post]
+func (ctrl *BrainController) CalendarBook(c *gin.Context) {
+	var req CalendarRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	result, err := ctrl.brainService.BookCalendarAppointment(c.Request.Context(), tenantID, req.RawArgs, req.Config)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, gin.H{"result": result})
 }

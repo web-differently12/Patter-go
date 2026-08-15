@@ -23,6 +23,86 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/gateway/brain/calendar/availability": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Vérifier la disponibilité de l'agenda (Google Calendar, Outlook, Cal.com, Calendly)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Arguments agenda",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.CalendarRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/brain/calendar/book": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Réserver un créneau dans l'agenda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Arguments réservation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.CalendarRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/core.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/gateway/brain/query": {
             "post": {
                 "consumes": [
@@ -916,6 +996,74 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "calendar.CalendarConfig": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "description": "1. Google Calendar / Outlook Credentials",
+                    "type": "string"
+                },
+                "auth_header": {
+                    "type": "string"
+                },
+                "calendar_id": {
+                    "description": "Primary calendar or specific ID",
+                    "type": "string"
+                },
+                "event_type_id": {
+                    "description": "2. Cal.com / Calendly Specifics",
+                    "type": "string"
+                },
+                "oauth_token": {
+                    "type": "string"
+                },
+                "provider": {
+                    "$ref": "#/definitions/calendar.CalendarProvider"
+                },
+                "timezone": {
+                    "description": "Timezone",
+                    "type": "string"
+                },
+                "user_uri": {
+                    "type": "string"
+                },
+                "webhook_url": {
+                    "description": "3. Custom Webhook",
+                    "type": "string"
+                }
+            }
+        },
+        "calendar.CalendarProvider": {
+            "type": "string",
+            "enum": [
+                "google_calendar",
+                "outlook_office365",
+                "cal_com",
+                "calendly",
+                "custom_webhook"
+            ],
+            "x-enum-varnames": [
+                "ProviderGoogleCalendar",
+                "ProviderOutlook",
+                "ProviderCalCom",
+                "ProviderCalendly",
+                "ProviderCustomWebhook"
+            ]
+        },
+        "controller.CalendarRequest": {
+            "type": "object",
+            "required": [
+                "raw_args"
+            ],
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/calendar.CalendarConfig"
+                },
+                "raw_args": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.RAGSearchRequest": {
             "type": "object",
             "required": [
@@ -1562,7 +1710,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Patter Engine Gateway & Campaign Engine API",
-	Description:      "Omnichannel gateway, campaign engine & Unified RAG Router (WhatsApp Evolution Go, Voice, SMS, AI Brain)",
+	Description:      "Omnichannel gateway, campaign engine, Unified RAG Router & Unified Calendar Booking (Google, Outlook, Cal.com, Calendly)",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
