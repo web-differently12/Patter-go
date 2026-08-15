@@ -497,6 +497,74 @@ definitions:
     - prompt_template
     - target_phone_numbers
     type: object
+  mcp.MCPServerConfig:
+    properties:
+      auth_headers:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        description: e.g. "HubSpot CRM MCP", "Postgres DB MCP"
+        type: string
+      server_id:
+        type: string
+      status:
+        description: '"CONNECTED", "DISCONNECTED"'
+        type: string
+      tenant_id:
+        type: string
+      transport:
+        $ref: '#/definitions/mcp.MCPServerTransport'
+      url:
+        description: e.g. "https://mcp.company.com/v1"
+        type: string
+    required:
+    - name
+    - url
+    type: object
+  mcp.MCPServerTransport:
+    enum:
+    - streamable_http
+    - sse
+    - websocket
+    type: string
+    x-enum-varnames:
+    - TransportHTTP
+    - TransportSSE
+    - TransportWebSocket
+  mcp.MCPTool:
+    properties:
+      description:
+        type: string
+      inputSchema:
+        additionalProperties: true
+        type: object
+      name:
+        type: string
+      server_id:
+        type: string
+    type: object
+  mcp.MCPToolCallRequest:
+    properties:
+      arguments:
+        additionalProperties: true
+        type: object
+      server_id:
+        type: string
+      tool_name:
+        type: string
+    required:
+    - server_id
+    - tool_name
+    type: object
+  mcp.MCPToolCallResponse:
+    properties:
+      content: {}
+      is_error:
+        type: boolean
+      tool_name:
+        type: string
+    type: object
   rag.FallbackTransferPolicy:
     properties:
       confidence_threshold:
@@ -828,7 +896,8 @@ info:
     name: API Support
     url: https://github.com/lynxflow/patter-go
   description: Omnichannel gateway, campaign engine, Direct Universal SIP Trunking
-    PBX, Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy
+    PBX, MCP (Model Context Protocol), Unified RAG Router, Recall.ai Meeting Bots
+    & Evolution Go Proxy
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -1248,6 +1317,124 @@ paths:
       summary: Obtenir les détails d'une instance
       tags:
       - Gateway - Instances
+  /api/v1/gateway/mcp/servers:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mcp.MCPServerConfig'
+                  type: array
+              type: object
+      summary: Lister les serveurs MCP connectés au Tenant
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+    post:
+      consumes:
+      - application/json
+      description: Intègre des outils externes (HubSpot, Postgres, GitHub, Slack)
+        via MCP
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration Serveur MCP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mcp.MCPServerConfig'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/mcp.MCPServerConfig'
+              type: object
+      summary: Connecter un serveur MCP (Model Context Protocol)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+  /api/v1/gateway/mcp/servers/{id}/tools:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID du Serveur MCP
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mcp.MCPTool'
+                  type: array
+              type: object
+      summary: Découvrir les outils exposés par un serveur MCP (tools/list)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+  /api/v1/gateway/mcp/tools/execute:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments de l'outil
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mcp.MCPToolCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/mcp.MCPToolCallResponse'
+              type: object
+      summary: Exécuter un outil MCP (tools/call)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
   /api/v1/gateway/messaging/sms:
     post:
       consumes:

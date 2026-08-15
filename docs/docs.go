@@ -687,6 +687,202 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/gateway/mcp/servers": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Model Context Protocol (MCP)"
+                ],
+                "summary": "Lister les serveurs MCP connectés au Tenant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/mcp.MCPServerConfig"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Intègre des outils externes (HubSpot, Postgres, GitHub, Slack) via MCP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Model Context Protocol (MCP)"
+                ],
+                "summary": "Connecter un serveur MCP (Model Context Protocol)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Configuration Serveur MCP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mcp.MCPServerConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/mcp.MCPServerConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/mcp/servers/{id}/tools": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Model Context Protocol (MCP)"
+                ],
+                "summary": "Découvrir les outils exposés par un serveur MCP (tools/list)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID du Serveur MCP",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/mcp.MCPTool"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/gateway/mcp/tools/execute": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Model Context Protocol (MCP)"
+                ],
+                "summary": "Exécuter un outil MCP (tools/call)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Arguments de l'outil",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mcp.MCPToolCallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/mcp.MCPToolCallResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/gateway/messaging/sms": {
             "post": {
                 "consumes": [
@@ -2205,6 +2401,104 @@ const docTemplate = `{
                 }
             }
         },
+        "mcp.MCPServerConfig": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "auth_headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "e.g. \"HubSpot CRM MCP\", \"Postgres DB MCP\"",
+                    "type": "string"
+                },
+                "server_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "\"CONNECTED\", \"DISCONNECTED\"",
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "transport": {
+                    "$ref": "#/definitions/mcp.MCPServerTransport"
+                },
+                "url": {
+                    "description": "e.g. \"https://mcp.company.com/v1\"",
+                    "type": "string"
+                }
+            }
+        },
+        "mcp.MCPServerTransport": {
+            "type": "string",
+            "enum": [
+                "streamable_http",
+                "sse",
+                "websocket"
+            ],
+            "x-enum-varnames": [
+                "TransportHTTP",
+                "TransportSSE",
+                "TransportWebSocket"
+            ]
+        },
+        "mcp.MCPTool": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "inputSchema": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "name": {
+                    "type": "string"
+                },
+                "server_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "mcp.MCPToolCallRequest": {
+            "type": "object",
+            "required": [
+                "server_id",
+                "tool_name"
+            ],
+            "properties": {
+                "arguments": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "server_id": {
+                    "type": "string"
+                },
+                "tool_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "mcp.MCPToolCallResponse": {
+            "type": "object",
+            "properties": {
+                "content": {},
+                "is_error": {
+                    "type": "boolean"
+                },
+                "tool_name": {
+                    "type": "string"
+                }
+            }
+        },
         "rag.FallbackTransferPolicy": {
             "type": "object",
             "properties": {
@@ -2683,7 +2977,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Patter Engine Gateway & Campaign Engine API",
-	Description:      "Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy",
+	Description:      "Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, MCP (Model Context Protocol), Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -21,6 +21,7 @@ import (
 	"github.com/lynxflow/patter-go/pkg/core"
 	instanceCtrl "github.com/lynxflow/patter-go/pkg/instance/controller"
 	instanceSvc "github.com/lynxflow/patter-go/pkg/instance/service"
+	mcpCtrl "github.com/lynxflow/patter-go/pkg/mcp"
 	messagingCtrl "github.com/lynxflow/patter-go/pkg/messaging/controller"
 	messagingSvc "github.com/lynxflow/patter-go/pkg/messaging/service"
 	"github.com/lynxflow/patter-go/pkg/rtc"
@@ -33,7 +34,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy
+// @description     Omnichannel gateway, campaign engine, Direct Universal SIP Trunking PBX, MCP (Model Context Protocol), Unified RAG Router, Recall.ai Meeting Bots & Evolution Go Proxy
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -61,6 +62,7 @@ func main() {
 	bSvc := brainSvc.NewBrainService()
 	recallSvc := rtc.NewRecallAIService(os.Getenv("RECALL_AI_API_KEY"), logger)
 	sipSvc := sip.NewSIPPBXService(logger)
+	mcpSvc := mcpCtrl.NewMCPService(logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -71,6 +73,7 @@ func main() {
 	bController := brainCtrl.NewBrainController(bSvc)
 	recallController := rtc.NewRecallController(recallSvc)
 	sipController := sip.NewSIPController(sipSvc)
+	mcpController := mcpCtrl.NewMCPController(mcpSvc)
 
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
@@ -85,6 +88,12 @@ func main() {
 		api.POST("/sip/trunks", sipController.RegisterTrunk)
 		api.GET("/sip/trunks", sipController.ListTrunks)
 		api.POST("/sip/call", sipController.InitiateSIPCall)
+
+		// Model Context Protocol (MCP) Integration
+		api.POST("/mcp/servers", mcpController.RegisterServer)
+		api.GET("/mcp/servers", mcpController.ListServers)
+		api.GET("/mcp/servers/:id/tools", mcpController.ListTools)
+		api.POST("/mcp/tools/execute", mcpController.ExecuteTool)
 
 		// WhatsApp Evolution Proxy
 		api.POST("/whatsapp/connect", waController.ConnectSession)
