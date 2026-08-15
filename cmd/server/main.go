@@ -23,6 +23,7 @@ import (
 	instanceSvc "github.com/lynxflow/patter-go/pkg/instance/service"
 	messagingCtrl "github.com/lynxflow/patter-go/pkg/messaging/controller"
 	messagingSvc "github.com/lynxflow/patter-go/pkg/messaging/service"
+	"github.com/lynxflow/patter-go/pkg/rtc"
 	voiceCtrl "github.com/lynxflow/patter-go/pkg/voice/controller"
 	voiceSvc "github.com/lynxflow/patter-go/pkg/voice/service"
 	waCtrl "github.com/lynxflow/patter-go/pkg/whatsapp/controller"
@@ -31,7 +32,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Calendar Booking & AssemblyAI LeMUR v3 Post-Call Analytics
+// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Recall.ai Meeting Bots, Calendar Booking & AssemblyAI LeMUR v3
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -57,6 +58,7 @@ func main() {
 	vSvc := voiceSvc.NewVoiceService()
 	msgSvc := messagingSvc.NewMessagingService()
 	bSvc := brainSvc.NewBrainService()
+	recallSvc := rtc.NewRecallAIService(os.Getenv("RECALL_AI_API_KEY"), logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -65,6 +67,7 @@ func main() {
 	vController := voiceCtrl.NewVoiceController(vSvc)
 	msgController := messagingCtrl.NewMessagingController(msgSvc)
 	bController := brainCtrl.NewBrainController(bSvc)
+	recallController := rtc.NewRecallController(recallSvc)
 
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
@@ -103,6 +106,11 @@ func main() {
 		api.POST("/brain/calendar/availability", bController.CalendarAvailability)
 		api.POST("/brain/calendar/book", bController.CalendarBook)
 		api.POST("/brain/lemur/process", bController.ProcessLeMUR)
+
+		// Meeting Bots (Recall.ai Zoom / Google Meet / Teams)
+		api.POST("/rtc/bot", recallController.CreateBot)
+		api.GET("/rtc/bots", recallController.ListBots)
+		api.POST("/rtc/bots/:id/leave", recallController.LeaveMeeting)
 	}
 
 	// Serve Static Dashboard Web UI
