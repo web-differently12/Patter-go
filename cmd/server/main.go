@@ -31,7 +31,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway, campaign engine, Unified RAG Router & Unified Calendar Booking (Google, Outlook, Cal.com, Calendly)
+// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Calendar Booking & AssemblyAI LeMUR v3 Post-Call Analytics
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -96,12 +96,13 @@ func main() {
 		// Messaging SMS/MMS
 		api.POST("/messaging/sms", msgController.SendSMS)
 
-		// AI Brain, Unified RAG & Unified Calendar
+		// AI Brain, Unified RAG, Calendar & AssemblyAI LeMUR v3
 		api.POST("/brain/query", bController.QueryBrain)
 		api.POST("/brain/rag/search", bController.SearchRAG)
 		api.POST("/brain/transfer", bController.HumanTransfer)
 		api.POST("/brain/calendar/availability", bController.CalendarAvailability)
 		api.POST("/brain/calendar/book", bController.CalendarBook)
+		api.POST("/brain/lemur/process", bController.ProcessLeMUR)
 	}
 
 	// Serve Static Dashboard Web UI

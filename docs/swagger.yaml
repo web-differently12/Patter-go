@@ -1,5 +1,106 @@
 basePath: /
 definitions:
+  brain.AudioAnalytics:
+    properties:
+      auto_chapters:
+        items:
+          $ref: '#/definitions/brain.Chapter'
+        type: array
+      pii_redacted:
+        type: boolean
+      sentiments:
+        items:
+          $ref: '#/definitions/brain.SentimentResult'
+        type: array
+      speaker_timeline:
+        items:
+          $ref: '#/definitions/brain.SpeakerUtterance'
+        type: array
+      talk_ratio:
+        additionalProperties:
+          type: number
+        description: 'e.g. {"Speaker_A": 0.65, "Speaker_B": 0.35}'
+        type: object
+      total_duration_sec:
+        type: number
+    type: object
+  brain.BANTQualification:
+    properties:
+      authority:
+        type: string
+      budget:
+        type: string
+      deal_score:
+        description: 0.0 - 1.0
+        type: number
+      need:
+        type: string
+      timing:
+        type: string
+    type: object
+  brain.Chapter:
+    properties:
+      end_ms:
+        type: integer
+      headline:
+        type: string
+      start_ms:
+        type: integer
+      summary:
+        type: string
+    type: object
+  brain.LeMURResponse:
+    properties:
+      action_items:
+        items:
+          type: string
+        type: array
+      analytics:
+        $ref: '#/definitions/brain.AudioAnalytics'
+      bant_qualification:
+        $ref: '#/definitions/brain.BANTQualification'
+      response:
+        type: string
+      task_type:
+        $ref: '#/definitions/brain.LeMURTaskType'
+      transcript_id:
+        type: string
+    type: object
+  brain.LeMURTaskType:
+    enum:
+    - summary
+    - action-items
+    - question-answer
+    - custom-task-bant
+    type: string
+    x-enum-varnames:
+    - LeMURTaskSummary
+    - LeMURTaskActionItems
+    - LeMURTaskQA
+    - LeMURTaskCustomBANT
+  brain.SentimentResult:
+    properties:
+      confidence:
+        type: number
+      sentiment:
+        description: '"POSITIVE", "NEUTRAL", "NEGATIVE"'
+        type: string
+      speaker:
+        type: string
+      text:
+        type: string
+    type: object
+  brain.SpeakerUtterance:
+    properties:
+      end_ms:
+        type: integer
+      speaker:
+        type: string
+      start_ms:
+        type: integer
+      text:
+        type: string
+    type: object
   calendar.CalendarConfig:
     properties:
       api_key:
@@ -48,6 +149,17 @@ definitions:
         type: string
     required:
     - raw_args
+    type: object
+  controller.LeMURRequest:
+    properties:
+      transcript_id:
+        type: string
+      utterances:
+        items:
+          $ref: '#/definitions/brain.SpeakerUtterance'
+        type: array
+    required:
+    - transcript_id
     type: object
   controller.RAGSearchRequest:
     properties:
@@ -486,8 +598,8 @@ info:
   contact:
     name: API Support
     url: https://github.com/lynxflow/patter-go
-  description: Omnichannel gateway, campaign engine, Unified RAG Router & Unified
-    Calendar Booking (Google, Outlook, Cal.com, Calendly)
+  description: Omnichannel gateway, campaign engine, Unified RAG Router, Calendar
+    Booking & AssemblyAI LeMUR v3 Post-Call Analytics
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -546,6 +658,38 @@ paths:
           schema:
             $ref: '#/definitions/core.APIResponse'
       summary: Réserver un créneau dans l'agenda
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/lemur/process:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres de l'appel
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LeMURRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/brain.LeMURResponse'
+              type: object
+      summary: Exécuter l'analyse Post-Call LeMUR v3 (BANT, Action Items, Talk-Ratio
+        & Sentiment)
       tags:
       - Gateway - Brain
   /api/v1/gateway/brain/query:

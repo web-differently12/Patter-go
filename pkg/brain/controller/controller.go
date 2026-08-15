@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lynxflow/patter-go/pkg/brain"
 	"github.com/lynxflow/patter-go/pkg/brain/service"
 	"github.com/lynxflow/patter-go/pkg/calendar"
 	"github.com/lynxflow/patter-go/pkg/core"
@@ -163,4 +164,35 @@ func (ctrl *BrainController) CalendarBook(c *gin.Context) {
 	}
 
 	core.Success(c, gin.H{"result": result})
+}
+
+type LeMURRequest struct {
+	TranscriptID string                  `json:"transcript_id" binding:"required"`
+	Utterances   []brain.SpeakerUtterance `json:"utterances,omitempty"`
+}
+
+// ProcessLeMUR godoc
+// @Summary      Exécuter l'analyse Post-Call LeMUR v3 (BANT, Action Items, Talk-Ratio & Sentiment)
+// @Tags         Gateway - Brain
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body LeMURRequest true "Paramètres de l'appel"
+// @Success      200 {object} core.APIResponse{data=brain.LeMURResponse}
+// @Router       /api/v1/gateway/brain/lemur/process [post]
+func (ctrl *BrainController) ProcessLeMUR(c *gin.Context) {
+	var req LeMURRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.brainService.ProcessPostCallLeMUR(c.Request.Context(), tenantID, req.TranscriptID, req.Utterances)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
 }

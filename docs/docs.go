@@ -103,6 +103,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/gateway/brain/lemur/process": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gateway - Brain"
+                ],
+                "summary": "Exécuter l'analyse Post-Call LeMUR v3 (BANT, Action Items, Talk-Ratio \u0026 Sentiment)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du Tenant White-Label",
+                        "name": "X-Tenant-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Paramètres de l'appel",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.LeMURRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/core.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/brain.LeMURResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/gateway/brain/query": {
             "post": {
                 "consumes": [
@@ -996,6 +1048,156 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "brain.AudioAnalytics": {
+            "type": "object",
+            "properties": {
+                "auto_chapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/brain.Chapter"
+                    }
+                },
+                "pii_redacted": {
+                    "type": "boolean"
+                },
+                "sentiments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/brain.SentimentResult"
+                    }
+                },
+                "speaker_timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/brain.SpeakerUtterance"
+                    }
+                },
+                "talk_ratio": {
+                    "description": "e.g. {\"Speaker_A\": 0.65, \"Speaker_B\": 0.35}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number"
+                    }
+                },
+                "total_duration_sec": {
+                    "type": "number"
+                }
+            }
+        },
+        "brain.BANTQualification": {
+            "type": "object",
+            "properties": {
+                "authority": {
+                    "type": "string"
+                },
+                "budget": {
+                    "type": "string"
+                },
+                "deal_score": {
+                    "description": "0.0 - 1.0",
+                    "type": "number"
+                },
+                "need": {
+                    "type": "string"
+                },
+                "timing": {
+                    "type": "string"
+                }
+            }
+        },
+        "brain.Chapter": {
+            "type": "object",
+            "properties": {
+                "end_ms": {
+                    "type": "integer"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "start_ms": {
+                    "type": "integer"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "brain.LeMURResponse": {
+            "type": "object",
+            "properties": {
+                "action_items": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "analytics": {
+                    "$ref": "#/definitions/brain.AudioAnalytics"
+                },
+                "bant_qualification": {
+                    "$ref": "#/definitions/brain.BANTQualification"
+                },
+                "response": {
+                    "type": "string"
+                },
+                "task_type": {
+                    "$ref": "#/definitions/brain.LeMURTaskType"
+                },
+                "transcript_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "brain.LeMURTaskType": {
+            "type": "string",
+            "enum": [
+                "summary",
+                "action-items",
+                "question-answer",
+                "custom-task-bant"
+            ],
+            "x-enum-varnames": [
+                "LeMURTaskSummary",
+                "LeMURTaskActionItems",
+                "LeMURTaskQA",
+                "LeMURTaskCustomBANT"
+            ]
+        },
+        "brain.SentimentResult": {
+            "type": "object",
+            "properties": {
+                "confidence": {
+                    "type": "number"
+                },
+                "sentiment": {
+                    "description": "\"POSITIVE\", \"NEUTRAL\", \"NEGATIVE\"",
+                    "type": "string"
+                },
+                "speaker": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "brain.SpeakerUtterance": {
+            "type": "object",
+            "properties": {
+                "end_ms": {
+                    "type": "integer"
+                },
+                "speaker": {
+                    "type": "string"
+                },
+                "start_ms": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
         "calendar.CalendarConfig": {
             "type": "object",
             "properties": {
@@ -1061,6 +1263,23 @@ const docTemplate = `{
                 },
                 "raw_args": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.LeMURRequest": {
+            "type": "object",
+            "required": [
+                "transcript_id"
+            ],
+            "properties": {
+                "transcript_id": {
+                    "type": "string"
+                },
+                "utterances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/brain.SpeakerUtterance"
+                    }
                 }
             }
         },
@@ -1710,7 +1929,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Patter Engine Gateway & Campaign Engine API",
-	Description:      "Omnichannel gateway, campaign engine, Unified RAG Router & Unified Calendar Booking (Google, Outlook, Cal.com, Calendly)",
+	Description:      "Omnichannel gateway, campaign engine, Unified RAG Router, Calendar Booking & AssemblyAI LeMUR v3 Post-Call Analytics",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

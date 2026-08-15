@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"github.com/lynxflow/patter-go/pkg/brain"
 	"github.com/lynxflow/patter-go/pkg/calendar"
 	"github.com/lynxflow/patter-go/pkg/core"
 	"github.com/lynxflow/patter-go/pkg/rag"
@@ -28,12 +30,14 @@ type BrainService interface {
 	ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error)
 	CheckCalendarAvailability(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error)
 	BookCalendarAppointment(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error)
+	ProcessPostCallLeMUR(ctx context.Context, tenantID, transcriptID string, utterances []brain.SpeakerUtterance) (*brain.LeMURResponse, error)
 }
 
 type brainService struct {
 	ragRouter     *rag.UnifiedRAGRouter
 	transferSkill *skills.HumanTransferSkill
 	calendarSkill *skills.CalendarBookingSkill
+	lemurEngine   *brain.LeMUREngine
 }
 
 func NewBrainService() BrainService {
@@ -41,11 +45,13 @@ func NewBrainService() BrainService {
 	router := rag.NewUnifiedRAGRouter(nil, nil, logger)
 	skill := skills.NewHumanTransferSkill(nil, logger)
 	calSkill := skills.NewCalendarBookingSkill(nil, logger)
+	lemur := brain.NewLeMUREngine(os.Getenv("ASSEMBLYAI_API_KEY"), logger)
 
 	return &brainService{
 		ragRouter:     router,
 		transferSkill: skill,
 		calendarSkill: calSkill,
+		lemurEngine:   lemur,
 	}
 }
 
@@ -72,4 +78,8 @@ func (s *brainService) CheckCalendarAvailability(ctx context.Context, tenantID, 
 
 func (s *brainService) BookCalendarAppointment(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error) {
 	return s.calendarSkill.BookAppointment(ctx, tenantID, rawArgs, cfg)
+}
+
+func (s *brainService) ProcessPostCallLeMUR(ctx context.Context, tenantID, transcriptID string, utterances []brain.SpeakerUtterance) (*brain.LeMURResponse, error) {
+	return s.lemurEngine.ProcessPostCallAnalytics(ctx, tenantID, transcriptID, utterances)
 }
