@@ -11,11 +11,12 @@ func TestRecallAIBotLifecycle(t *testing.T) {
 	svc := rtc.NewRecallAIService("", nil)
 
 	req := rtc.CreateMeetingBotRequest{
-		MeetingURL:      "https://meet.google.com/xyz-uvwx-rst",
-		BotName:         "Assistant Lynxflow",
-		Platform:        rtc.PlatformGoogleMeet,
-		EnableRecording: true,
-		Language:        "fr",
+		MeetingURL:               "https://meet.google.com/xyz-uvwx-rst",
+		BotName:                  "Assistant Lynxflow",
+		Platform:                 rtc.PlatformGoogleMeet,
+		RecordingMode:            rtc.RecordingSpeakerView,
+		EnableRealtimeTranscript: true,
+		Language:                 "fr",
 	}
 
 	bot, err := svc.CreateMeetingBot(context.Background(), "tenant_test", req)

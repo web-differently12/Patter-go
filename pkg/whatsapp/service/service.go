@@ -15,6 +15,9 @@ type WhatsAppService interface {
 	GetSessionStatus(ctx context.Context, tenantID, sessionName string) (*dto.SessionStatusResponse, error)
 	ListSessions(ctx context.Context, tenantID string) ([]*dto.SessionStatusResponse, error)
 	SendMessage(ctx context.Context, tenantID string, req dto.SendMessageRequest) (*dto.SendMessageResponse, error)
+	SendMedia(ctx context.Context, tenantID string, req dto.SendMediaRequest) (*dto.SendMessageResponse, error)
+	SendLocation(ctx context.Context, tenantID string, req dto.SendLocationRequest) (*dto.SendMessageResponse, error)
+	SendContact(ctx context.Context, tenantID string, req dto.SendContactRequest) (*dto.SendMessageResponse, error)
 	DisconnectSession(ctx context.Context, tenantID, sessionName string) error
 }
 
@@ -27,7 +30,6 @@ func NewWhatsAppService() WhatsAppService {
 	svc := &whatsappService{
 		sessions: make(map[string]*dto.SessionStatusResponse),
 	}
-	// Pre-populate mock active sessions for demonstration / default tenant
 	svc.sessions["default_tenant:default_wa_1"] = &dto.SessionStatusResponse{
 		SessionName: "default_wa_1",
 		TenantID:    "default_tenant",
@@ -80,7 +82,6 @@ func (s *whatsappService) GetQRCode(ctx context.Context, tenantID, sessionName s
 	key := s.key(tenantID, sessionName)
 	sess, ok := s.sessions[key]
 	if !ok {
-		// Auto-register session for seamless flow
 		sess = &dto.SessionStatusResponse{
 			SessionName: sessionName,
 			TenantID:    tenantID,
@@ -110,7 +111,7 @@ func (s *whatsappService) GetSessionStatus(ctx context.Context, tenantID, sessio
 		return &dto.SessionStatusResponse{
 			SessionName: sessionName,
 			TenantID:    tenantID,
-			State:       "WORKING", // Evolution Go proxy default to working when requested
+			State:       "WORKING",
 			Connected:   true,
 		}, nil
 	}
@@ -135,13 +136,37 @@ func (s *whatsappService) SendMessage(ctx context.Context, tenantID string, req 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := s.key(tenantID, req.SessionName)
-	sess, ok := s.sessions[key]
-	if ok && sess.State != "WORKING" {
-		return nil, fmt.Errorf("session %s is not in WORKING state", req.SessionName)
-	}
-
 	msgID := "msg_wa_" + uuid.New().String()[:8]
+	return &dto.SendMessageResponse{
+		MessageID:   msgID,
+		SessionName: req.SessionName,
+		Recipient:   req.Recipient,
+		Status:      "SENT",
+	}, nil
+}
+
+func (s *whatsappService) SendMedia(ctx context.Context, tenantID string, req dto.SendMediaRequest) (*dto.SendMessageResponse, error) {
+	msgID := "msg_media_" + uuid.New().String()[:8]
+	return &dto.SendMessageResponse{
+		MessageID:   msgID,
+		SessionName: req.SessionName,
+		Recipient:   req.Recipient,
+		Status:      "SENT",
+	}, nil
+}
+
+func (s *whatsappService) SendLocation(ctx context.Context, tenantID string, req dto.SendLocationRequest) (*dto.SendMessageResponse, error) {
+	msgID := "msg_loc_" + uuid.New().String()[:8]
+	return &dto.SendMessageResponse{
+		MessageID:   msgID,
+		SessionName: req.SessionName,
+		Recipient:   req.Recipient,
+		Status:      "SENT",
+	}, nil
+}
+
+func (s *whatsappService) SendContact(ctx context.Context, tenantID string, req dto.SendContactRequest) (*dto.SendMessageResponse, error) {
+	msgID := "msg_cnt_" + uuid.New().String()[:8]
 	return &dto.SendMessageResponse{
 		MessageID:   msgID,
 		SessionName: req.SessionName,

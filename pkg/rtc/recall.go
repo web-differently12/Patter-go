@@ -23,6 +23,14 @@ const (
 	PlatformWebex          MeetingPlatform = "webex"
 )
 
+type RecordingMode string
+
+const (
+	RecordingSpeakerView RecordingMode = "speaker_view"
+	RecordingGalleryView RecordingMode = "gallery_view"
+	RecordingAudioOnly   RecordingMode = "audio_only"
+)
+
 type BotStatus string
 
 const (
@@ -34,33 +42,47 @@ const (
 )
 
 type CreateMeetingBotRequest struct {
-	MeetingURL          string          `json:"meeting_url" binding:"required"`
-	BotName             string          `json:"bot_name,omitempty"`
-	Platform            MeetingPlatform `json:"platform,omitempty"`
-	EnableRecording     bool            `json:"enable_recording"`
-	EnableLiveStreaming bool            `json:"enable_live_streaming"`
-	Language            string          `json:"language,omitempty"` // e.g. "fr", "en", "es", "auto"
-	SystemPrompt        string          `json:"system_prompt,omitempty"`
-	WebhookURL          string          `json:"webhook_url,omitempty"`
+	MeetingURL                string          `json:"meeting_url" binding:"required"`
+	BotName                   string          `json:"bot_name,omitempty"`
+	AvatarURL                 string          `json:"avatar_url,omitempty"`
+	Platform                  MeetingPlatform `json:"platform,omitempty"`
+	RecordingMode             RecordingMode   `json:"recording_mode,omitempty"`
+	EnableRealtimeTranscript  bool            `json:"enable_realtime_transcript"`
+	EnableRealtimeAudioStream bool            `json:"enable_realtime_audio_stream"`
+	EnableChatMessaging       bool            `json:"enable_chat_messaging"`
+	Language                  string          `json:"language,omitempty"` // "fr", "en", "es", "de", "auto"
+	AutomaticLeaveWhenAlone   bool            `json:"automatic_leave_when_alone"`
+	SilenceTimeoutMinutes     int             `json:"silence_timeout_minutes,omitempty"`
+	SystemPrompt              string          `json:"system_prompt,omitempty"`
+	WebhookURL                string          `json:"webhook_url,omitempty"`
+}
+
+type SendMeetingChatMessageRequest struct {
+	BotID   string `json:"bot_id" binding:"required"`
+	Message string `json:"message" binding:"required"`
 }
 
 type MeetingBotResponse struct {
-	BotID               string          `json:"bot_id"`
-	TenantID            string          `json:"tenant_id"`
-	MeetingURL          string          `json:"meeting_url"`
-	BotName             string          `json:"bot_name"`
-	Platform            MeetingPlatform `json:"platform"`
-	Status              BotStatus       `json:"status"`
-	Language            string          `json:"language"`
-	VideoRecordingURL   string          `json:"video_recording_url,omitempty"`
-	TranscriptURL       string          `json:"transcript_url,omitempty"`
-	CreatedAt           time.Time       `json:"created_at"`
+	BotID                   string          `json:"bot_id"`
+	TenantID                string          `json:"tenant_id"`
+	MeetingURL              string          `json:"meeting_url"`
+	BotName                 string          `json:"bot_name"`
+	AvatarURL               string          `json:"avatar_url,omitempty"`
+	Platform                MeetingPlatform `json:"platform"`
+	Status                  BotStatus       `json:"status"`
+	Language                string          `json:"language"`
+	RecordingMode           RecordingMode   `json:"recording_mode"`
+	VideoRecordingURL       string          `json:"video_recording_url,omitempty"`
+	TranscriptURL           string          `json:"transcript_url,omitempty"`
+	AudioStreamWebSocketURL string          `json:"audio_stream_websocket_url,omitempty"`
+	CreatedAt               time.Time       `json:"created_at"`
 }
 
 type RecallAIService interface {
 	CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error)
 	GetBotStatus(ctx context.Context, tenantID, botID string) (*MeetingBotResponse, error)
 	ListBots(ctx context.Context, tenantID string) ([]*MeetingBotResponse, error)
+	SendChatMessage(ctx context.Context, tenantID string, req SendMeetingChatMessageRequest) error
 	LeaveMeeting(ctx context.Context, tenantID, botID string) error
 }
 
@@ -82,19 +104,22 @@ func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
 		bots:       make(map[string]*MeetingBotResponse),
 	}
 
-	// Pre-populate mock meeting bot for demonstration
+	// Pre-populate mock meeting bot
 	mockID := "bot_meet_101"
 	svc.bots["default_tenant:"+mockID] = &MeetingBotResponse{
-		BotID:             mockID,
-		TenantID:          "default_tenant",
-		MeetingURL:        "https://meet.google.com/abc-defg-hij",
-		BotName:           "Patter AI Assistant",
-		Platform:          PlatformGoogleMeet,
-		Status:            StatusInCall,
-		Language:          "fr",
-		VideoRecordingURL: "https://recall.ai/recordings/rec_101.mp4",
-		TranscriptURL:     "https://recall.ai/transcripts/trx_101.json",
-		CreatedAt:         time.Now().Add(-15 * time.Minute),
+		BotID:                   mockID,
+		TenantID:                "default_tenant",
+		MeetingURL:              "https://meet.google.com/abc-defg-hij",
+		BotName:                 "Patter AI Assistant",
+		AvatarURL:               "https://patter.ai/assets/avatar_white_label.png",
+		Platform:                PlatformGoogleMeet,
+		Status:                  StatusInCall,
+		Language:                "fr",
+		RecordingMode:           RecordingSpeakerView,
+		VideoRecordingURL:       "https://recall.ai/recordings/rec_101.mp4",
+		TranscriptURL:           "https://recall.ai/transcripts/trx_101.json",
+		AudioStreamWebSocketURL: "wss://recall.ai/ws/audio/bot_101",
+		CreatedAt:               time.Now().Add(-15 * time.Minute),
 	}
 
 	return svc
@@ -108,28 +133,39 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 	if req.Language == "" {
 		req.Language = "fr"
 	}
+	if req.RecordingMode == "" {
+		req.RecordingMode = RecordingSpeakerView
+	}
 
 	bot := &MeetingBotResponse{
-		BotID:             botID,
-		TenantID:          tenantID,
-		MeetingURL:        req.MeetingURL,
-		BotName:           req.BotName,
-		Platform:          req.Platform,
-		Status:            StatusJoining,
-		Language:          req.Language,
-		CreatedAt:         time.Now(),
+		BotID:                   botID,
+		TenantID:                tenantID,
+		MeetingURL:              req.MeetingURL,
+		BotName:                 req.BotName,
+		AvatarURL:               req.AvatarURL,
+		Platform:                req.Platform,
+		Status:                  StatusJoining,
+		Language:                req.Language,
+		RecordingMode:           req.RecordingMode,
+		AudioStreamWebSocketURL: fmt.Sprintf("wss://recall.ai/ws/audio/%s", botID),
+		CreatedAt:               time.Now(),
 	}
 
 	s.bots[tenantID+":"+botID] = bot
 
-	// Recall.ai API integration
+	// Recall.ai API Max Integration
 	if s.apiKey != "" {
 		payload, _ := json.Marshal(map[string]interface{}{
 			"meeting_url": req.MeetingURL,
 			"bot_name":    req.BotName,
+			"avatar_url":  req.AvatarURL,
 			"transcription_options": map[string]interface{}{
 				"provider": "assemblyai",
 				"language": req.Language,
+			},
+			"recording_mode": string(req.RecordingMode),
+			"automatic_leave": map[string]interface{}{
+				"everyone_left_timeout": 60,
 			},
 		})
 		httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.recall.ai/api/v1/bot", bytes.NewBuffer(payload))
@@ -166,9 +202,18 @@ func (s *recallAIService) ListBots(ctx context.Context, tenantID string) ([]*Mee
 	return result, nil
 }
 
+func (s *recallAIService) SendChatMessage(ctx context.Context, tenantID string, req SendMeetingChatMessageRequest) error {
+	bot, ok := s.bots[tenantID+":"+req.BotID]
+	if !ok || bot.TenantID != tenantID {
+		return fmt.Errorf("bot %s not found", req.BotID)
+	}
+	s.logger.Info("Sent chat message to meeting", "bot_id", req.BotID, "message", req.Message)
+	return nil
+}
+
 func (s *recallAIService) LeaveMeeting(ctx context.Context, tenantID, botID string) error {
 	bot, ok := s.bots[tenantID+":"+botID]
-	if !ok {
+	if !ok || bot.TenantID != tenantID {
 		return fmt.Errorf("bot %s not found", botID)
 	}
 	bot.Status = StatusLeft

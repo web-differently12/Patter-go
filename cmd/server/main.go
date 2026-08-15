@@ -32,7 +32,7 @@ import (
 
 // @title           Patter Engine Gateway & Campaign Engine API
 // @version         1.0
-// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Recall.ai Meeting Bots, Calendar Booking & AssemblyAI LeMUR v3
+// @description     Omnichannel gateway, campaign engine, Unified RAG Router, Recall.ai Meeting Bots, Calendar Booking & Evolution Go WhatsApp Proxy
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -84,6 +84,9 @@ func main() {
 		api.GET("/whatsapp/qrcode/:session", waController.GetQRCode)
 		api.GET("/whatsapp/sessions", waController.ListSessions)
 		api.POST("/whatsapp/message/send", waController.SendMessage)
+		api.POST("/whatsapp/media/send", waController.SendMedia)
+		api.POST("/whatsapp/location/send", waController.SendLocation)
+		api.POST("/whatsapp/contact/send", waController.SendContact)
 
 		// Omnichannel Campaigns
 		api.POST("/campaigns", campaignController.CreateCampaign)

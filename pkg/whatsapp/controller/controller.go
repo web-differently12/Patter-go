@@ -91,7 +91,7 @@ func (ctrl *WhatsAppController) ListSessions(c *gin.Context) {
 }
 
 // SendMessage godoc
-// @Summary      Envoyer un message WhatsApp
+// @Summary      Envoyer un message WhatsApp texte
 // @Tags         Gateway - WhatsApp
 // @Accept       json
 // @Produce      json
@@ -108,6 +108,84 @@ func (ctrl *WhatsAppController) SendMessage(c *gin.Context) {
 
 	tenantID := core.GetTenantID(c)
 	resp, err := ctrl.waService.SendMessage(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
+// SendMedia godoc
+// @Summary      Envoyer un média WhatsApp (Image, Vidéo, Document, Audio, Sticker)
+// @Tags         Gateway - WhatsApp
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body dto.SendMediaRequest true "Paramètres média"
+// @Success      200 {object} core.APIResponse{data=dto.SendMessageResponse}
+// @Router       /api/v1/gateway/whatsapp/media/send [post]
+func (ctrl *WhatsAppController) SendMedia(c *gin.Context) {
+	var req dto.SendMediaRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.waService.SendMedia(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
+// SendLocation godoc
+// @Summary      Envoyer une localisation GPS WhatsApp
+// @Tags         Gateway - WhatsApp
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body dto.SendLocationRequest true "Paramètres localisation"
+// @Success      200 {object} core.APIResponse{data=dto.SendMessageResponse}
+// @Router       /api/v1/gateway/whatsapp/location/send [post]
+func (ctrl *WhatsAppController) SendLocation(c *gin.Context) {
+	var req dto.SendLocationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.waService.SendLocation(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
+// SendContact godoc
+// @Summary      Envoyer une carte de contact VCard WhatsApp
+// @Tags         Gateway - WhatsApp
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body dto.SendContactRequest true "Paramètres contact"
+// @Success      200 {object} core.APIResponse{data=dto.SendMessageResponse}
+// @Router       /api/v1/gateway/whatsapp/contact/send [post]
+func (ctrl *WhatsAppController) SendContact(c *gin.Context) {
+	var req dto.SendContactRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.waService.SendContact(c.Request.Context(), tenantID, req)
 	if err != nil {
 		core.Error(c, http.StatusInternalServerError, err.Error())
 		return
