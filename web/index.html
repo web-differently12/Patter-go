@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patter Core Engine — Dashboard White-Label</title>
+  <title>Patter Core Engine — Dashboard White-Label & MCP</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Alpine.js CDN -->
@@ -68,7 +68,11 @@
       <div class="flex border-b border-slate-800 space-x-8 overflow-x-auto">
         <button @click="activeTab = 'vapi_agent'" :class="activeTab === 'vapi_agent' ? 'border-purple-500 text-purple-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-robot text-purple-400"></i>
-          <span>Agent Vocal IA (Prêt à l'Emploi)</span>
+          <span>Agent Vocal IA</span>
+        </button>
+        <button @click="activeTab = 'mcp_servers'" :class="activeTab === 'mcp_servers' ? 'border-amber-500 text-amber-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-plug text-amber-400"></i>
+          <span>Connecteurs MCP (HubSpot, DB, Custom)</span>
         </button>
         <button @click="activeTab = 'campaigns'" :class="activeTab === 'campaigns' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-paper-plane"></i>
@@ -76,7 +80,7 @@
         </button>
         <button @click="activeTab = 'whatsapp'" :class="activeTab === 'whatsapp' ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-brands fa-whatsapp text-emerald-400"></i>
-          <span>Connexion WhatsApp (QR Code)</span>
+          <span>Connexion WhatsApp</span>
         </button>
         <button @click="activeTab = 'rtc_bots'" :class="activeTab === 'rtc_bots' ? 'border-indigo-500 text-indigo-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-video text-indigo-400"></i>
@@ -106,7 +110,6 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Voice Options -->
             <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
               <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-volume-high"></i> 1. Voix & Style
@@ -125,7 +128,6 @@
               </div>
             </div>
 
-            <!-- Language & Sensitivity -->
             <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
               <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-earth-americas"></i> 2. Langue & Réactivité
@@ -146,7 +148,6 @@
               </div>
             </div>
 
-            <!-- Human Transfer Number -->
             <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
               <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-headset"></i> 3. Escalade & Transfert
@@ -161,7 +162,44 @@
         </div>
       </div>
 
-      <!-- TAB 2: CAMPAIGNS -->
+      <!-- TAB 2: MCP SERVERS (MODEL CONTEXT PROTOCOL) -->
+      <div x-show="activeTab === 'mcp_servers'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-plug text-amber-400"></i>
+                Serveurs MCP (Model Context Protocol)
+              </h2>
+              <p class="text-sm text-slate-400">Connectez n'importe quel serveur MCP personnalisé (HubSpot, Postgres, Salesforce, GitHub, Slack) pour donner des super-pouvoirs à votre agent.</p>
+            </div>
+            <button @click="showMCPModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-amber-600/20">
+              <i class="fa-solid fa-plus"></i>
+              <span>Connecter un Serveur MCP</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="srv in mcpServers" :key="srv.server_id">
+              <div class="p-5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-amber-400" x-text="srv.name"></span>
+                  <span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-semibold" x-text="srv.status"></span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono truncate" x-text="'URL: ' + srv.url"></p>
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                  <span class="text-slate-500" x-text="'Transport: ' + (srv.transport || 'streamable_http')"></span>
+                  <button @click="inspectMCPTools(srv.server_id)" class="text-amber-400 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-toolbox"></i> Voir Outils Découverts
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: CAMPAIGNS -->
       <div x-show="activeTab === 'campaigns'" class="space-y-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/40 p-6 rounded-2xl border border-slate-800">
           <div>
@@ -221,7 +259,7 @@
         </div>
       </div>
 
-      <!-- TAB 3: WHATSAPP SESSIONS -->
+      <!-- TAB 4: WHATSAPP -->
       <div x-show="activeTab === 'whatsapp'" class="space-y-8">
         <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
           <div class="flex items-center justify-between">
@@ -278,7 +316,7 @@
         </div>
       </div>
 
-      <!-- TAB 4: RECALL.AI BOTS -->
+      <!-- TAB 5: RECALL.AI BOTS -->
       <div x-show="activeTab === 'rtc_bots'" class="space-y-8">
         <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
           <div class="flex items-center justify-between">
@@ -309,7 +347,7 @@
         </div>
       </div>
 
-      <!-- TAB 5: INSTANCES -->
+      <!-- TAB 6: INSTANCES -->
       <div x-show="activeTab === 'instances'" class="space-y-8">
         <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
           <h2 class="text-lg font-bold text-white">Espaces Isolés Tenant</h2>
@@ -329,6 +367,37 @@
 
     </main>
 
+    <!-- CONNECT MCP SERVER MODAL -->
+    <div x-show="showMCPModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-cloak>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-plug text-amber-400"></i>
+            Connecter un Serveur MCP Personnalisé
+          </h3>
+          <button @click="showMCPModal = false" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nom du Serveur MCP</label>
+            <input type="text" x-model="newMCPServer.name" placeholder="Ex: HubSpot CRM, Customer DB" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">URL Endpoint Serveur MCP</label>
+            <input type="text" x-model="newMCPServer.url" placeholder="https://mcp.votre-entreprise.com/v1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <button @click="showMCPModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700">Annuler</button>
+          <button @click="submitMCPServer()" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-xl hover:bg-amber-500 shadow-lg shadow-amber-600/20">Connecter le Serveur</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -338,10 +407,12 @@
         activeTab: 'vapi_agent',
         showCreateModal: false,
         showBotModal: false,
+        showMCPModal: false,
         campaigns: [],
         waSessions: [],
         instances: [],
         meetingBots: [],
+        mcpServers: [],
         qrCodeData: null,
         agentConfig: {
           voice_style: 'sarah',
@@ -349,6 +420,10 @@
           language: 'fr',
           barge_in_confirm_ms: 1500,
           human_transfer_destination: '+33612345678'
+        },
+        newMCPServer: {
+          name: 'Serveur MCP CRM Client',
+          url: 'https://mcp.custom.org/v1'
         },
         async initDashboard() {
           await this.refreshData();
@@ -358,7 +433,8 @@
             this.fetchCampaigns(),
             this.fetchWASessions(),
             this.fetchInstances(),
-            this.fetchBots()
+            this.fetchBots(),
+            this.fetchMCPServers()
           ]);
         },
         async fetchCampaigns() {
@@ -388,6 +464,36 @@
             const data = await res.json();
             if (data.success) { this.meetingBots = data.data || []; }
           } catch (e) { console.error('Fetch error:', e); }
+        },
+        async fetchMCPServers() {
+          try {
+            const res = await fetch('/api/v1/gateway/mcp/servers', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.mcpServers = data.data || []; }
+          } catch (e) { console.error('Fetch MCP error:', e); }
+        },
+        async submitMCPServer() {
+          try {
+            const res = await fetch('/api/v1/gateway/mcp/servers', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
+              body: JSON.stringify(this.newMCPServer)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.showMCPModal = false;
+              await this.fetchMCPServers();
+            }
+          } catch (e) { console.error('Submit MCP error:', e); }
+        },
+        async inspectMCPTools(serverID) {
+          try {
+            const res = await fetch(`/api/v1/gateway/mcp/servers/${serverID}/tools`, { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) {
+              alert(`Outils MCP découverts (${data.data.length}):\n` + data.data.map(t => '- ' + t.name + ': ' + t.description).join('\n'));
+            }
+          } catch (e) { console.error('Inspect tools error:', e); }
         },
         async connectWhatsApp() {
           try {
