@@ -24,8 +24,22 @@ type QueryBrainResponse struct {
 	Sources    []string `json:"sources,omitempty"`
 }
 
+type EnhancePromptRequest struct {
+	UserPrompt   string `json:"user_prompt"`   // Raw or empty user prompt
+	AgentRole    string `json:"agent_role"`    // "SUPPORT", "SALES", "RECEPTIONIST"
+	BusinessName string `json:"business_name"` // e.g. "Acme Corp"
+	EnableRAG    bool   `json:"enable_rag"`
+}
+
+type EnhancePromptResponse struct {
+	EnhancedSystemPrompt string   `json:"enhanced_system_prompt"`
+	SuggestedSkills      []string `json:"suggested_skills"`
+	OptimizedRole        string   `json:"optimized_role"`
+}
+
 type BrainService interface {
 	QueryBrain(ctx context.Context, tenantID string, req QueryBrainRequest) (*QueryBrainResponse, error)
+	EnhanceSystemPrompt(ctx context.Context, tenantID string, req EnhancePromptRequest) (*EnhancePromptResponse, error)
 	SearchRAG(ctx context.Context, tenantID, callSID, query string, cfg rag.KnowledgeBaseConfig) (*rag.SearchResult, error)
 	ExecuteHumanTransfer(ctx context.Context, tenantID, callSID, rawArgs, destination string) (string, error)
 	CheckCalendarAvailability(ctx context.Context, tenantID, rawArgs string, cfg calendar.CalendarConfig) (string, error)
@@ -61,6 +75,40 @@ func (s *brainService) QueryBrain(ctx context.Context, tenantID string, req Quer
 		Answer:     answer,
 		Confidence: 0.98,
 		Sources:    []string{"RAG Knowledgebase", "LeMUR v3"},
+	}, nil
+}
+
+func (s *brainService) EnhanceSystemPrompt(ctx context.Context, tenantID string, req EnhancePromptRequest) (*EnhancePromptResponse, error) {
+	business := req.BusinessName
+	if business == "" {
+		business = "votre entreprise"
+	}
+
+	role := req.AgentRole
+	if role == "" {
+		role = "Assistant Commercial et Support"
+	}
+
+	basePrompt := req.UserPrompt
+	if basePrompt == "" {
+		basePrompt = fmt.Sprintf("Vous êtes l'agent IA officiel de %s. Votre objectif est d'accueillir les clients, de répondre précisément à leurs questions et de planifier des rendez-vous.", business)
+	}
+
+	enhanced := fmt.Sprintf(`# RÔLE & IDENTITÉ
+Vous êtes un agent IA conversationnel ultra-performant opérant pour %s en tant que %s.
+
+# DIRECTIVES DE CONVERSATION (VOICE & CHAT)
+1. Parlez de manière naturelle, dynamique et courtoise.
+2. Si vous recherchez des informations dans la base RAG ou si vous envoyez un message/code, dites une phrase de transition orale (ex: "Un instant, je vérifie notre base de connaissances...") pour ne pas laisser de blanc.
+3. Si la question dépasse votre périmètre, demandez la confirmation du client avant de le transférer à un conseiller humain.
+
+# CONTEXTE METIER & CONSIGNES CLIENT
+%s`, business, role, basePrompt)
+
+	return &EnhancePromptResponse{
+		EnhancedSystemPrompt: enhanced,
+		SuggestedSkills:      []string{"send_validation_code", "send_outbound_message", "request_human_transfer", "check_calendar_availability"},
+		OptimizedRole:        role,
 	}, nil
 }
 

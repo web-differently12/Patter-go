@@ -22,11 +22,11 @@ func NewVoiceController(svc service.VoiceService) *VoiceController {
 // @Accept       json
 // @Produce      json
 // @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
-// @Param        request body service.VoiceCallRequest true "Paramètres de l'appel"
-// @Success      200 {object} core.APIResponse{data=service.VoiceCallResponse}
+// @Param        request body service.InitiateCallRequest true "Paramètres de l'appel"
+// @Success      200 {object} core.APIResponse{data=service.InitiateCallResponse}
 // @Router       /api/v1/gateway/voice/call [post]
 func (ctrl *VoiceController) InitiateCall(c *gin.Context) {
-	var req service.VoiceCallRequest
+	var req service.InitiateCallRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		core.Error(c, http.StatusBadRequest, err.Error())
 		return

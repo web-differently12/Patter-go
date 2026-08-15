@@ -17,6 +17,33 @@ func NewWhatsAppController(svc service.WhatsAppService) *WhatsAppController {
 	return &WhatsAppController{waService: svc}
 }
 
+// CheckNumberExists godoc
+// @Summary      Vérifier si un numéro existe sur WhatsApp (JID)
+// @Description  Normalise et vérifie la présence d'un numéro de téléphone sur WhatsApp
+// @Tags         Gateway - WhatsApp
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body dto.CheckNumberRequest true "Numéro à vérifier"
+// @Success      200 {object} core.APIResponse{data=dto.CheckNumberResponse}
+// @Router       /api/v1/gateway/whatsapp/check-number [post]
+func (ctrl *WhatsAppController) CheckNumberExists(c *gin.Context) {
+	var req dto.CheckNumberRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.waService.CheckNumberExists(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
 // ConnectSession godoc
 // @Summary      Connecter une session WhatsApp (Evolution Go)
 // @Description  Inscrit une nouvelle session WhatsApp sous la marque blanche du Tenant

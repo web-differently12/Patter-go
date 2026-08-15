@@ -6,22 +6,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type VoiceCallRequest struct {
-	FromNumber string `json:"from_number" binding:"required"`
-	ToNumber   string `json:"to_number" binding:"required"`
-	AgentID    string `json:"agent_id,omitempty"`
-	Prompt     string `json:"prompt,omitempty"`
+type InitiateCallRequest struct {
+	FromNumber          string `json:"from_number" binding:"required"`
+	ToNumber            string `json:"to_number" binding:"required"`
+	SystemPrompt        string `json:"system_prompt,omitempty"`
+	EnableRAG           bool   `json:"enable_rag"`
+	AsyncToolExecution  bool   `json:"async_tool_execution"`
+	VoiceStyle          string `json:"voice_style,omitempty"`
 }
 
-type VoiceCallResponse struct {
-	CallID     string `json:"call_id"`
-	Status     string `json:"status"` // "QUEUED", "RINGING", "IN_PROGRESS"
-	FromNumber string `json:"from_number"`
-	ToNumber   string `json:"to_number"`
+type InitiateCallResponse struct {
+	CallID              string `json:"call_id"`
+	Status              string `json:"status"` // "QUEUED", "IN_PROGRESS", "COMPLETED"
+	InitialFillerSpeech string `json:"initial_filler_speech,omitempty"`
 }
 
 type VoiceService interface {
-	InitiateCall(ctx context.Context, tenantID string, req VoiceCallRequest) (*VoiceCallResponse, error)
+	InitiateCall(ctx context.Context, tenantID string, req InitiateCallRequest) (*InitiateCallResponse, error)
 }
 
 type voiceService struct{}
@@ -30,12 +31,11 @@ func NewVoiceService() VoiceService {
 	return &voiceService{}
 }
 
-func (s *voiceService) InitiateCall(ctx context.Context, tenantID string, req VoiceCallRequest) (*VoiceCallResponse, error) {
+func (s *voiceService) InitiateCall(ctx context.Context, tenantID string, req InitiateCallRequest) (*InitiateCallResponse, error) {
 	callID := "call_" + uuid.New().String()[:8]
-	return &VoiceCallResponse{
-		CallID:     callID,
-		Status:     "QUEUED",
-		FromNumber: req.FromNumber,
-		ToNumber:   req.ToNumber,
+	return &InitiateCallResponse{
+		CallID:              callID,
+		Status:              "QUEUED",
+		InitialFillerSpeech: "Bonjour ! Je suis votre assistant virtuel, un instant je charge notre dossier...",
 	}, nil
 }

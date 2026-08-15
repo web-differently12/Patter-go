@@ -21,16 +21,19 @@ const (
 	TransportHTTP      MCPServerTransport = "streamable_http"
 	TransportSSE       MCPServerTransport = "sse"
 	TransportWebSocket MCPServerTransport = "websocket"
+	TransportNangoBridge MCPServerTransport = "nango_unified_bridge"
 )
 
 type MCPServerConfig struct {
-	ServerID   string             `json:"server_id"`
-	TenantID   string             `json:"tenant_id"`
-	Name       string             `json:"name" binding:"required"` // e.g. "HubSpot CRM MCP", "Postgres DB MCP"
-	URL        string             `json:"url" binding:"required"`  // e.g. "https://mcp.company.com/v1"
-	Transport  MCPServerTransport `json:"transport"`
-	AuthHeader map[string]string  `json:"auth_headers,omitempty"`
-	Status     string             `json:"status"` // "CONNECTED", "DISCONNECTED"
+	ServerID       string             `json:"server_id"`
+	TenantID       string             `json:"tenant_id"`
+	Name           string             `json:"name" binding:"required"` // e.g. "HubSpot CRM MCP", "Nango Unified Integrations"
+	URL            string             `json:"url" binding:"required"`  // e.g. "https://mcp.company.com/v1" or "https://api.nango.dev"
+	Transport      MCPServerTransport `json:"transport"`
+	NangoConnectionID string          `json:"nango_connection_id,omitempty"`
+	NangoIntegrationID string         `json:"nango_integration_id,omitempty"`
+	AuthHeader     map[string]string  `json:"auth_headers,omitempty"`
+	Status         string             `json:"status"` // "CONNECTED", "DISCONNECTED"
 }
 
 type MCPTool struct {
@@ -76,7 +79,6 @@ func NewMCPService(logger *slog.Logger) MCPService {
 		logger:     logger.With("component", "mcp_service"),
 	}
 
-	// Pre-populate sample MCP server (HubSpot CRM MCP)
 	mockID := "mcp_hubspot_01"
 	svc.servers["default_tenant:"+mockID] = &MCPServerConfig{
 		ServerID:  mockID,
@@ -85,6 +87,17 @@ func NewMCPService(logger *slog.Logger) MCPService {
 		URL:       "https://mcp.hubspot.com/v1",
 		Transport: TransportHTTP,
 		Status:    "CONNECTED",
+	}
+
+	nangoID := "mcp_nango_bridge_01"
+	svc.servers["default_tenant:"+nangoID] = &MCPServerConfig{
+		ServerID:           nangoID,
+		TenantID:           "default_tenant",
+		Name:               "Nango Unified Integrations Bridge",
+		URL:                "https://api.nango.dev/proxy",
+		Transport:          TransportNangoBridge,
+		NangoIntegrationID: "hubspot-salesforce-slack",
+		Status:             "CONNECTED",
 	}
 
 	return svc
@@ -130,7 +143,6 @@ func (s *mcpService) ListDiscoveredTools(ctx context.Context, tenantID, serverID
 		return nil, fmt.Errorf("mcp server %s not found", serverID)
 	}
 
-	// Connect to MCP server tools/list endpoint
 	if srv.URL != "" {
 		payload, _ := json.Marshal(map[string]interface{}{
 			"jsonrpc": "2.0",
@@ -152,11 +164,10 @@ func (s *mcpService) ListDiscoveredTools(ctx context.Context, tenantID, serverID
 		}
 	}
 
-	// Discovered MCP tools return
 	return []MCPTool{
 		{
 			Name:        "get_crm_contact",
-			Description: "Récupère les informations d'un contact CRM via MCP",
+			Description: "Récupère les informations d'un contact CRM via MCP / Nango Bridge",
 			ServerID:    serverID,
 			InputSchema: map[string]interface{}{
 				"type": "object",
@@ -169,7 +180,7 @@ func (s *mcpService) ListDiscoveredTools(ctx context.Context, tenantID, serverID
 		},
 		{
 			Name:        "create_support_ticket",
-			Description: "Crée un ticket de support client via MCP",
+			Description: "Crée un ticket de support client via MCP / Nango Bridge",
 			ServerID:    serverID,
 			InputSchema: map[string]interface{}{
 				"type": "object",
@@ -195,7 +206,7 @@ func (s *mcpService) ExecuteTool(ctx context.Context, tenantID string, req MCPTo
 		return nil, fmt.Errorf("mcp server %s not found", req.ServerID)
 	}
 
-	s.logger.Info("Executing MCP Tool Call", "server_id", req.ServerID, "tool", req.ToolName)
+	s.logger.Info("Executing MCP Tool Call", "server_id", req.ServerID, "tool", req.ToolName, "transport", srv.Transport)
 
 	if srv.URL != "" {
 		payload, _ := json.Marshal(map[string]interface{}{
@@ -222,7 +233,7 @@ func (s *mcpService) ExecuteTool(ctx context.Context, tenantID string, req MCPTo
 
 	return &MCPToolCallResponse{
 		ToolName: req.ToolName,
-		Content:  map[string]interface{}{"status": "success", "data": "Action exécutée avec succès via MCP Server"},
+		Content:  map[string]interface{}{"status": "success", "data": "Action exécutée avec succès via MCP / Nango Server Bridge"},
 		IsError:  false,
 	}, nil
 }

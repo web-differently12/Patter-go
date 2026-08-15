@@ -10,11 +10,12 @@ import (
 )
 
 type SendValidationCodeRequest struct {
-	TenantID   string `json:"tenant_id"`
-	Recipient  string `json:"recipient"`   // E.164 phone number
-	Channel    string `json:"channel"`     // "WHATSAPP", "SMS", "RCS", "AUTO"
-	CodeLength int    `json:"code_length"` // e.g. 6 digits
-	CustomCode string `json:"custom_code,omitempty"`
+	TenantID            string `json:"tenant_id"`
+	Recipient           string `json:"recipient"`   // E.164 phone number
+	Channel             string `json:"channel"`     // "WHATSAPP", "SMS", "RCS", "AUTO"
+	CodeLength          int    `json:"code_length"` // e.g. 6 digits
+	CustomCode          string `json:"custom_code,omitempty"`
+	AsyncWithFillerText bool   `json:"async_with_filler_text"`
 }
 
 type SendValidationCodeResult struct {
@@ -24,22 +25,25 @@ type SendValidationCodeResult struct {
 	MessageID    string `json:"message_id"`
 	Recipient    string `json:"recipient"`
 	ExpiresInSec int    `json:"expires_in_sec"`
+	FillerSpeech string `json:"filler_speech,omitempty"` // Speech for AI to speak immediately while task executes in background
 }
 
 type SendOutboundMessageRequest struct {
-	TenantID  string `json:"tenant_id"`
-	Recipient string `json:"recipient"`
-	Channel   string `json:"channel"` // "WHATSAPP", "SMS", "RCS"
-	Content   string `json:"content"`
-	MediaURL  string `json:"media_url,omitempty"`
+	TenantID            string `json:"tenant_id"`
+	Recipient           string `json:"recipient"`
+	Channel             string `json:"channel"` // "WHATSAPP", "SMS", "RCS"
+	Content             string `json:"content"`
+	MediaURL            string `json:"media_url,omitempty"`
+	AsyncWithFillerText bool   `json:"async_with_filler_text"`
 }
 
 type SendOutboundMessageResult struct {
-	Success     bool   `json:"success"`
-	ChannelUsed string `json:"channel_used"`
-	MessageID   string `json:"message_id"`
-	Recipient   string `json:"recipient"`
-	Status      string `json:"status"`
+	Success      bool   `json:"success"`
+	ChannelUsed  string `json:"channel_used"`
+	MessageID    string `json:"message_id"`
+	Recipient    string `json:"recipient"`
+	Status       string `json:"status"`
+	FillerSpeech string `json:"filler_speech,omitempty"` // Speech for AI to keep talking during async dispatch
 }
 
 type MessageSkillEngine struct{}
@@ -70,6 +74,14 @@ func (e *MessageSkillEngine) SendValidationCode(ctx context.Context, req SendVal
 
 	msgID := "val_code_" + uuid.New().String()[:8]
 
+	fillerPhrases := []string{
+		"Très bien, je génère et vous envoie votre code de confirmation à l'instant...",
+		"Un moment, le code de sécurité est envoyé directement sur votre téléphone...",
+		"C'est noté, je vous expédie le code par message tout de suite...",
+	}
+
+	filler := fillerPhrases[rand.Intn(len(fillerPhrases))]
+
 	return &SendValidationCodeResult{
 		Success:      true,
 		CodeSent:     code,
@@ -77,6 +89,7 @@ func (e *MessageSkillEngine) SendValidationCode(ctx context.Context, req SendVal
 		MessageID:    msgID,
 		Recipient:    req.Recipient,
 		ExpiresInSec: 300,
+		FillerSpeech: filler,
 	}, nil
 }
 
@@ -88,11 +101,20 @@ func (e *MessageSkillEngine) SendOutboundMessage(ctx context.Context, req SendOu
 
 	msgID := "ai_dispatch_" + uuid.New().String()[:8]
 
+	fillerPhrases := []string{
+		"Je vous envoie ces informations directement par message, vous devriez le recevoir dans quelques secondes...",
+		"Parfait, le lien et les détails vous sont transférés immédiatement...",
+		"C'est envoyé ! Pendant que vous le recevez, avez-vous d'autres questions ?",
+	}
+
+	filler := fillerPhrases[rand.Intn(len(fillerPhrases))]
+
 	return &SendOutboundMessageResult{
-		Success:     true,
-		ChannelUsed: channel,
-		MessageID:   msgID,
-		Recipient:   req.Recipient,
-		Status:      "SENT",
+		Success:      true,
+		ChannelUsed:  channel,
+		MessageID:    msgID,
+		Recipient:    req.Recipient,
+		Status:       "SENT",
+		FillerSpeech: filler,
 	}, nil
 }

@@ -60,9 +60,9 @@ func main() {
 	vSvc := voiceSvc.NewVoiceService()
 	msgSvc := messagingSvc.NewMessagingService()
 	bSvc := brainSvc.NewBrainService()
+	mcpSvc := mcpCtrl.NewMCPService(logger)
 	recallSvc := rtc.NewRecallAIService(os.Getenv("RECALL_AI_API_KEY"), logger)
 	sipSvc := sip.NewSIPPBXService(logger)
-	mcpSvc := mcpCtrl.NewMCPService(logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -89,13 +89,14 @@ func main() {
 		api.GET("/sip/trunks", sipController.ListTrunks)
 		api.POST("/sip/call", sipController.InitiateSIPCall)
 
-		// Model Context Protocol (MCP) Integration
+		// Model Context Protocol (MCP) Integration & Nango Bridge
 		api.POST("/mcp/servers", mcpController.RegisterServer)
 		api.GET("/mcp/servers", mcpController.ListServers)
 		api.GET("/mcp/servers/:id/tools", mcpController.ListTools)
 		api.POST("/mcp/tools/execute", mcpController.ExecuteTool)
 
-		// WhatsApp Evolution Proxy
+		// WhatsApp Evolution Proxy & Number Checker
+		api.POST("/whatsapp/check-number", waController.CheckNumberExists)
 		api.POST("/whatsapp/connect", waController.ConnectSession)
 		api.GET("/whatsapp/qrcode", waController.GetQRCode)
 		api.GET("/whatsapp/qrcode/:session", waController.GetQRCode)
@@ -116,18 +117,20 @@ func main() {
 		api.POST("/voice/campaign", campaignController.CreateVoiceCampaign)
 		api.POST("/voice/call", vController.InitiateCall)
 
-		// Messaging SMS/MMS
+		// Messaging SMS/MMS & RCS
 		api.POST("/messaging/sms", msgController.SendSMS)
+		api.POST("/messaging/rcs", msgController.SendRCS)
 
-		// AI Brain, Unified RAG, Calendar & AssemblyAI LeMUR v3
+		// AI Brain, Prompt Generator Copilot, Unified RAG, Calendar & AssemblyAI LeMUR v3
 		api.POST("/brain/query", bController.QueryBrain)
+		api.POST("/brain/prompt/enhance", bController.EnhancePrompt)
 		api.POST("/brain/rag/search", bController.SearchRAG)
 		api.POST("/brain/transfer", bController.HumanTransfer)
 		api.POST("/brain/calendar/availability", bController.CalendarAvailability)
 		api.POST("/brain/calendar/book", bController.CalendarBook)
 		api.POST("/brain/lemur/process", bController.ProcessLeMUR)
 
-		// Meeting Bots (Recall.ai Zoom / Google Meet / Teams)
+		// Meeting Bots (Recall.ai Zoom / Google Meet / Teams / Webex)
 		api.POST("/rtc/bot", recallController.CreateBot)
 		api.GET("/rtc/bots", recallController.ListBots)
 		api.POST("/rtc/bots/:id/leave", recallController.LeaveMeeting)

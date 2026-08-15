@@ -57,3 +57,14 @@ type SendMessageResponse struct {
 	Recipient   string `json:"recipient"`
 	Status      string `json:"status"` // "SENT", "PENDING", "FAILED"
 }
+
+type CheckNumberRequest struct {
+	PhoneNumber string `json:"phone_number" binding:"required"`
+}
+
+type CheckNumberResponse struct {
+	PhoneNumber  string `json:"phone_number"`
+	JID          string `json:"jid"`
+	Exists       bool   `json:"exists"`
+	IsInWhatsApp bool   `json:"is_in_whatsapp"`
+}

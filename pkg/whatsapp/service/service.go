@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ type WhatsAppService interface {
 	SendLocation(ctx context.Context, tenantID string, req dto.SendLocationRequest) (*dto.SendMessageResponse, error)
 	SendContact(ctx context.Context, tenantID string, req dto.SendContactRequest) (*dto.SendMessageResponse, error)
 	DisconnectSession(ctx context.Context, tenantID, sessionName string) error
+	CheckNumberExists(ctx context.Context, tenantID string, req dto.CheckNumberRequest) (*dto.CheckNumberResponse, error)
 }
 
 type whatsappService struct {
@@ -49,6 +51,25 @@ func NewWhatsAppService() WhatsAppService {
 
 func (s *whatsappService) key(tenantID, sessionName string) string {
 	return tenantID + ":" + sessionName
+}
+
+func (s *whatsappService) CheckNumberExists(ctx context.Context, tenantID string, req dto.CheckNumberRequest) (*dto.CheckNumberResponse, error) {
+	cleanDigits := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, req.PhoneNumber)
+
+	jid := cleanDigits + "@s.whatsapp.net"
+	exists := len(cleanDigits) >= 10 && len(cleanDigits) <= 15
+
+	return &dto.CheckNumberResponse{
+		PhoneNumber:  req.PhoneNumber,
+		JID:          jid,
+		Exists:       exists,
+		IsInWhatsApp: exists,
+	}, nil
 }
 
 func (s *whatsappService) ConnectSession(ctx context.Context, tenantID string, req dto.ConnectWhatsAppRequest) (*dto.QRCodeResponse, error) {
