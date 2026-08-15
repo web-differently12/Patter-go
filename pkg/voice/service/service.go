@@ -7,12 +7,17 @@ import (
 )
 
 type InitiateCallRequest struct {
-	FromNumber          string `json:"from_number" binding:"required"`
-	ToNumber            string `json:"to_number" binding:"required"`
-	SystemPrompt        string `json:"system_prompt,omitempty"`
-	EnableRAG           bool   `json:"enable_rag"`
-	AsyncToolExecution  bool   `json:"async_tool_execution"`
-	VoiceStyle          string `json:"voice_style,omitempty"`
+	FromNumber          string  `json:"from_number" binding:"required"`
+	ToNumber            string  `json:"to_number" binding:"required"`
+	SystemPrompt        string  `json:"system_prompt,omitempty"`
+	EnableRAG           bool    `json:"enable_rag"`
+	AsyncToolExecution  bool    `json:"async_tool_execution"`
+	VoiceStyle          string  `json:"voice_style,omitempty"`
+	SpeechSpeed         float64 `json:"speech_speed,omitempty"`          // e.g. 1.0, 1.2x
+	BargeInSensitivity  int     `json:"barge_in_sensitivity_ms,omitempty"` // e.g. 1500ms
+	EnergyVADThreshold  float64 `json:"energy_vad_threshold,omitempty"`  // e.g. 0.02 energy level
+	RecordingEnabled    bool    `json:"recording_enabled"`
+	TransferDestination string  `json:"human_transfer_destination,omitempty"`
 }
 
 type InitiateCallResponse struct {

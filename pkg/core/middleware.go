@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +25,21 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set(TenantIDKey, tenantID)
+		c.Next()
+	}
+}
+
+// TenantRLSMiddleware enforces Row-Level Security at the database session level (SET LOCAL app.current_tenant_id = 'tenant_xyz')
+func TenantRLSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tenantID := GetTenantID(c)
+		if tenantID != "" {
+			// Attach PostgreSQL Row-Level Security GUC statement to context
+			rlsQuery := fmt.Sprintf("SET LOCAL app.current_tenant_id = '%s';", tenantID)
+			c.Set("db_rls_statement", rlsQuery)
+			ctx := context.WithValue(c.Request.Context(), "tenant_rls_id", tenantID)
+			c.Request = c.Request.WithContext(ctx)
+		}
 		c.Next()
 	}
 }
