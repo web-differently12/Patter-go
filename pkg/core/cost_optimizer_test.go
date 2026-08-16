@@ -20,6 +20,14 @@ func TestCostOptimizationEngine(t *testing.T) {
 		t.Errorf("Expected patter_premium_engine for premium meeting, got %s", premiumMeeting.ProviderName)
 	}
 
+	// Test ResolveProvider with Feature Matrix
+	resolvedMeetingBaaS := engine.ResolveProvider(core.ResourceTypeMeeting, map[string]bool{
+		"google_meet": true,
+	})
+	if resolvedMeetingBaaS.ProviderName != "meetingbaas_engine" {
+		t.Errorf("Expected meetingbaas_engine for Google Meet recording, got %s", resolvedMeetingBaaS.ProviderName)
+	}
+
 	// Test Voice Cost Routing
 	economyVoice := engine.SelectOptimalProvider(core.ResourceTypeVoice, false)
 	if economyVoice.ProviderName != "patter_sip_direct_pbx" {

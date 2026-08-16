@@ -74,19 +74,19 @@ type TenantMeetingSettings struct {
 }
 
 type MeetingProfile struct {
-	ProfileID                   string `json:"profile_id"`
-	TenantID                    string `json:"tenant_id"`
-	Name                        string `json:"name" binding:"required"`
-	EnableSpeakerDiarization    bool   `json:"enable_speaker_diarization"`
+	ProfileID                     string `json:"profile_id"`
+	TenantID                      string `json:"tenant_id"`
+	Name                          string `json:"name" binding:"required"`
+	EnableSpeakerDiarization      bool   `json:"enable_speaker_diarization"`
 	EnableActionItemsExtraction bool   `json:"enable_action_items_extraction"`
-	EnableParticipantSentiment  bool   `json:"enable_participant_sentiment"`
-	EnableLiveTranslation       bool   `json:"enable_live_translation"`
-	TargetTranslationLanguage   string `json:"target_translation_language,omitempty"`
-	EnableScreenShareRecording  bool   `json:"enable_screen_share_recording"`
-	SummaryTemplate             string `json:"summary_template"`
-	AutoLeaveOnSilenceMinutes   int    `json:"auto_leave_on_silence_minutes"`
-	AutoLeaveWhenEveryoneLeft   bool   `json:"auto_leave_when_everyone_left"`
-	CustomAvatarVideoURL        string `json:"custom_avatar_video_url,omitempty"`
+	EnableParticipantSentiment    bool   `json:"enable_participant_sentiment"`
+	EnableLiveTranslation         bool   `json:"enable_live_translation"`
+	TargetTranslationLanguage     string `json:"target_translation_language,omitempty"`
+	EnableScreenShareRecording    bool   `json:"enable_screen_share_recording"`
+	SummaryTemplate               string `json:"summary_template"`
+	AutoLeaveOnSilenceMinutes     int    `json:"auto_leave_on_silence_minutes"`
+	AutoLeaveWhenEveryoneLeft     bool   `json:"auto_leave_when_everyone_left"`
+	CustomAvatarVideoURL          string `json:"custom_avatar_video_url,omitempty"`
 }
 
 type CreateMeetingBotRequest struct {
@@ -129,7 +129,7 @@ type MeetingBotResponse struct {
 	TranscriptionOptions    TranscriptionOptions  `json:"transcription_options"`
 	AutomaticLeave          AutomaticLeaveOptions `json:"automatic_leave"`
 	CreatedAt               time.Time             `json:"created_at"`
-	ProviderUsed            string                `json:"provider_used"` // e.g. "patter_native_rtc" or "patter_premium_engine"
+	ProviderUsed            string                `json:"provider_used"` // e.g. "patter_native_rtc", "meetingbaas_engine" or "patter_premium_engine"
 }
 
 type MeetingEngineService interface {
@@ -147,6 +147,7 @@ type MeetingEngineService interface {
 
 type meetingEngineService struct {
 	apiKey         string
+	costOptimizer  *core.CostOptimizationEngine
 	httpClient     *http.Client
 	logger         *slog.Logger
 	mu             sync.RWMutex
@@ -161,6 +162,7 @@ func NewMeetingEngineService(apiKey string, logger *slog.Logger) MeetingEngineSe
 	}
 	svc := &meetingEngineService{
 		apiKey:         apiKey,
+		costOptimizer:  core.NewCostOptimizationEngine(logger),
 		httpClient:     &http.Client{Timeout: 10 * time.Second},
 		logger:         logger.With("component", "patter_meeting_engine"),
 		tenantSettings: make(map[string]*TenantMeetingSettings),
@@ -168,7 +170,6 @@ func NewMeetingEngineService(apiKey string, logger *slog.Logger) MeetingEngineSe
 		bots:           make(map[string]*MeetingBotResponse),
 	}
 
-	// Default tenant settings
 	svc.tenantSettings["default_tenant"] = &TenantMeetingSettings{
 		TenantID:         "default_tenant",
 		DefaultBotName:   "Patter AI Assistant",
@@ -294,10 +295,8 @@ func (s *meetingEngineService) CreateMeetingBot(ctx context.Context, tenantID st
 	}
 
 	// Cost Optimization Routing
-	providerUsed := "patter_native_rtc"
-	if req.VideoOptions != nil || req.EnableRealtimeAudioStream {
-		providerUsed = "patter_premium_engine"
-	}
+	requiresPremium := req.VideoOptions != nil || req.EnableRealtimeAudioStream || req.Platform == PlatformWebex || req.Platform == PlatformMicrosoftTeams
+	costProfile := s.costOptimizer.SelectOptimalProvider(core.ResourceTypeMeeting, requiresPremium)
 
 	bot := &MeetingBotResponse{
 		BotID:                   botID,
@@ -314,7 +313,7 @@ func (s *meetingEngineService) CreateMeetingBot(ctx context.Context, tenantID st
 		TranscriptionOptions:    trxOpts,
 		AutomaticLeave:          autoLeave,
 		CreatedAt:               time.Now(),
-		ProviderUsed:            providerUsed,
+		ProviderUsed:            costProfile.ProviderName,
 	}
 
 	s.mu.Lock()

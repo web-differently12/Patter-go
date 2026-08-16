@@ -14,6 +14,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "github.com/lynxflow/patter-go/docs"
+	avatarCtrl "github.com/lynxflow/patter-go/pkg/avatar"
 	brainCtrl "github.com/lynxflow/patter-go/pkg/brain/controller"
 	brainSvc "github.com/lynxflow/patter-go/pkg/brain/service"
 	campaignCtrl "github.com/lynxflow/patter-go/pkg/campaign/controller"
@@ -64,6 +65,7 @@ func main() {
 	mcpSvc := mcpCtrl.NewMCPService(logger)
 	meetingEngineSvc := rtc.NewMeetingEngineService(os.Getenv("PATTER_MEETING_ENGINE_KEY"), logger)
 	sipSvc := sip.NewSIPPBXService(logger)
+	avatarSvc := avatarCtrl.NewAvatarEngineService(os.Getenv("WAVESPEED_API_KEY"), logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -75,6 +77,7 @@ func main() {
 	recallController := rtc.NewRecallController(meetingEngineSvc)
 	sipController := sip.NewSIPController(sipSvc)
 	mcpController := mcpCtrl.NewMCPController(mcpSvc)
+	avatarController := avatarCtrl.NewAvatarController(avatarSvc)
 
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
@@ -101,6 +104,10 @@ func main() {
 		api.GET("/mcp/servers", mcpController.ListServers)
 		api.GET("/mcp/servers/:id/tools", mcpController.ListTools)
 		api.POST("/mcp/tools/execute", mcpController.ExecuteTool)
+
+		// Avatar Video Engine (WaveSpeed API & Local GPU Renderer)
+		api.POST("/avatar/stream", avatarController.StreamRealtimeAvatar)
+		api.POST("/avatar/render", avatarController.RenderMassAvatarVideo)
 
 		// WhatsApp Engine Proxy & Number Checker
 		api.POST("/whatsapp/check-number", waController.CheckNumberExists)
