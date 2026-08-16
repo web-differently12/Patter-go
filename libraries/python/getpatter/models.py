@@ -1230,6 +1230,44 @@ class MeetingMediaStreamConfig:
     realtime_transcription: bool = True
 
 
+@dataclass(frozen=True)
+class MeetingChatMessage:
+    """In-meeting chat message schema for sending and receiving text chat."""
+
+    sender_id: str
+    sender_name: str
+    message: str
+    timestamp: float | None = None
+
+
+@dataclass(frozen=True)
+class MeetingSpeakerSegment:
+    """Speaker timeline segment for per-participant diarized transcription."""
+
+    participant_id: str
+    participant_name: str
+    start_time: float
+    end_time: float
+    transcript: str
+
+
+@dataclass(frozen=True)
+class MeetingOutputMediaConfig:
+    """Settings for rendering video/camera or screenshare output into the meeting."""
+
+    fps: int = 30
+    resolution: Literal["720p", "1080p"] = "720p"
+    source_type: Literal["camera", "screenshare"] = "camera"
+
+
+@dataclass(frozen=True)
+class MeetingParticipantMediaConfig:
+    """Options for per-participant multi-track audio and video stream isolation."""
+
+    separate_audio_tracks: bool = True
+    separate_video_tracks: bool = False
+
+
 # Carrier-agnostic terminal outcomes for an outbound call. ``answered`` means a
 # human (or at least a live connection) picked up and the conversation ran;
 # ``voicemail`` means AMD classified the callee as a machine; the remaining

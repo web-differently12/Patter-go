@@ -1437,6 +1437,36 @@ export interface MeetingMediaStreamConfig {
   readonly realtimeTranscription?: boolean;
 }
 
+/** In-meeting chat message schema for sending and receiving text chat. */
+export interface MeetingChatMessage {
+  readonly senderId: string;
+  readonly senderName: string;
+  readonly message: string;
+  readonly timestamp?: number;
+}
+
+/** Speaker timeline segment for per-participant diarized transcription. */
+export interface MeetingSpeakerSegment {
+  readonly participantId: string;
+  readonly participantName: string;
+  readonly startTime: number;
+  readonly endTime: number;
+  readonly transcript: string;
+}
+
+/** Settings for rendering video/camera or screenshare output into the meeting. */
+export interface MeetingOutputMediaConfig {
+  readonly fps?: number;
+  readonly resolution?: '720p' | '1080p';
+  readonly sourceType?: 'camera' | 'screenshare';
+}
+
+/** Options for per-participant multi-track audio and video stream isolation. */
+export interface MeetingParticipantMediaConfig {
+  readonly separateAudioTracks?: boolean;
+  readonly separateVideoTracks?: boolean;
+}
+
 /**
  * Carrier-agnostic terminal outcomes for an outbound call. `answered` means a
  * human (or at least a live connection) picked up and the conversation ran;
