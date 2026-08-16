@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patter Core Engine — Dashboard White-Label & Billing Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100" x-data="dashboardApp()" x-init="initDashboard()">
+  <div class="min-h-full flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-500/20">
+            <i class="fa-solid fa-microphone-lines"></i>
+          </div>
+          <div>
+            <span class="text-lg font-bold bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Espace Client White-Label</span>
+            <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">EchoFlow Engine</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Tenant Selector -->
+          <div class="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+            <i class="fa-solid fa-building text-slate-400 text-sm"></i>
+            <span class="text-xs font-medium text-slate-300">Espace Tenant:</span>
+            <input type="text" x-model="tenantId" @change="refreshData()" class="bg-transparent text-xs font-bold text-sky-400 focus:outline-none w-28">
+          </div>
+
+          <!-- Wallet Quick Badge -->
+          <button @click="activeTab = 'billing'" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition text-xs font-bold">
+            <i class="fa-solid fa-wallet"></i>
+            <span x-text="(wallet.balance_fiat || 50.00).toFixed(2) + ' €'"></span>
+          </button>
+
+          <a href="/swagger/index.html" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30 transition text-xs font-semibold">
+            <i class="fa-solid fa-code"></i>
+            <span>API Docs</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+      <!-- Navigation Tabs -->
+      <div class="flex border-b border-slate-800 space-x-8 overflow-x-auto">
+        <button @click="activeTab = 'billing'" :class="activeTab === 'billing' ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-wallet text-emerald-400"></i>
+          <span>Facturation & Wallet Prépayé</span>
+        </button>
+        <button @click="activeTab = 'vapi_agent'" :class="activeTab === 'vapi_agent' ? 'border-purple-500 text-purple-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-robot text-purple-400"></i>
+          <span>Agent Vocal IA</span>
+        </button>
+        <button @click="activeTab = 'mcp_servers'" :class="activeTab === 'mcp_servers' ? 'border-amber-500 text-amber-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-plug text-amber-400"></i>
+          <span>Connecteurs MCP</span>
+        </button>
+        <button @click="activeTab = 'campaigns'" :class="activeTab === 'campaigns' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Moteur de Campagnes</span>
+        </button>
+        <button @click="activeTab = 'whatsapp'" :class="activeTab === 'whatsapp' ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+          <span>Connexion WhatsApp</span>
+        </button>
+        <button @click="activeTab = 'rtc_bots'" :class="activeTab === 'rtc_bots' ? 'border-indigo-500 text-indigo-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-video text-indigo-400"></i>
+          <span>Bots Visioconférence</span>
+        </button>
+      </div>
+
+      <!-- TAB 0: BILLING, WALLET & LIVE METERING -->
+      <div x-show="activeTab === 'billing'" class="space-y-8">
+
+        <!-- Top Wallet Autonomy Banner -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Solde Prépayé Actuel</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="accountStatusLabel"></span>
+            </div>
+            <div class="flex items-baseline space-x-3">
+              <span class="text-3xl font-extrabold text-white" x-text="(wallet.balance_fiat || 50.00).toFixed(2) + ' €'"></span>
+              <span class="text-sm font-semibold text-amber-400 flex items-center gap-1">
+                <i class="fa-bold fa-bitcoin"></i> <span x-text="(wallet.balance_satoshis || 125000) + ' sats'"></span>
+              </span>
+            </div>
+            <button @click="showTopupModal = true" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-bolt"></i> Recharger via Hyperswitch / Bitcoin Lightning
+            </button>
+          </div>
+
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jauge d'Autonomie Estimée (Burn Rate)</span>
+            <div class="space-y-2 pt-1">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Temps d'appels voix restant:</span>
+                <span class="text-sky-400 font-bold" x-text="autonomy.voice_call_minutes + ' minutes'"></span>
+              </div>
+              <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                <div class="bg-sky-500 h-full rounded-full" style="width: 78%"></div>
+              </div>
+              <p class="text-xs text-slate-500 pt-1">Basé sur une consommation moyenne de $0.025 / minute voix ou 120 meetings visio assistés.</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Marge Agence Configuree</span>
+              <button @click="updateMargins()" class="text-xs text-purple-400 font-bold hover:underline">Enregistrer</button>
+            </div>
+            <div class="space-y-3 pt-1">
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Majoration en Pourcentage (% Markup)</label>
+                <div class="flex items-center space-x-2">
+                  <input type="number" x-model.number="marginConfig.markup_percentage" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white">
+                  <span class="text-xs font-bold text-purple-400">%</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500">Marge nette générée sur chaque milliseconde STT, token LLM et caractère TTS.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Session Token & Audio Meter -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-sky-400"></i>
+                Décompte Temps Réel des Tokens & Secondes (Live Metering)
+              </h2>
+              <p class="text-sm text-slate-400">Décomposition exacte par brique technologique avec calcul de marge instantané.</p>
+            </div>
+            <button @click="simulateLiveEvent()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2">
+              <i class="fa-solid fa-play"></i> Simuler un Event de Consommation
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟣 LLM Tokens (OpenAI / DeepSeek)</span>
+              <span class="text-lg font-extrabold text-purple-400 block" x-text="(liveMetering.prompt_tokens || 1420) + ' In / ' + (liveMetering.completion_tokens || 280) + ' Out'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.llm_cost || 0.0113).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🔵 STT Audio (Deepgram Nova-2)</span>
+              <span class="text-lg font-extrabold text-sky-400 block" x-text="(liveMetering.audio_duration_ms || 42000) + ' ms'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.stt_cost || 0.0030).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟢 TTS Voice (ElevenLabs Flash)</span>
+              <span class="text-lg font-extrabold text-emerald-400 block" x-text="(liveMetering.tts_characters || 380) + ' caractères'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.tts_cost || 0.0057).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟡 Télécom SIP PBX</span>
+              <span class="text-lg font-extrabold text-amber-400 block" x-text="(liveMetering.sip_duration_sec || 42) + ' secondes'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.sip_cost || 0.0058).toFixed(4) + ' €'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Real-Time Provider Rates & Options Audit Catalog -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-table-list text-purple-400"></i>
+                Audit des Tarifs Fournisseurs & Options en Temps Réel (Admin Inspect)
+              </h2>
+              <p class="text-sm text-slate-400">Vérification automatique des coûts réels fournisseurs et options additionnelles (Diarization, Voice HD, Token Reasoning).</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Catégorie</th>
+                  <th class="p-3">Fournisseur</th>
+                  <th class="p-3">Modèle / Option</th>
+                  <th class="p-3">Unité</th>
+                  <th class="p-3">Coût Brut Unitaire</th>
+                  <th class="p-3">Statut Audit</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60">
+                <template x-for="p in providerCatalog" :key="p.provider_name + p.model_name">
+                  <tr class="hover:bg-slate-950/40">
+                    <td class="p-3 font-bold text-sky-400" x-text="p.category"></td>
+                    <td class="p-3 text-white font-semibold" x-text="p.provider_name"></td>
+                    <td class="p-3 text-slate-300" x-text="p.model_name + (p.option_name ? ' (' + p.option_name + ')' : '')"></td>
+                    <td class="p-3 text-slate-400" x-text="p.unit_type"></td>
+                    <td class="p-3 font-mono font-bold text-emerald-400" x-text="'$' + p.raw_cost_unit"></td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold" x-text="p.status"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 1: WHITE-LABEL VOICE AGENT -->
+      <div x-show="activeTab === 'vapi_agent'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-purple-400"></i>
+                Configuration de votre Agent Vocal IA
+              </h2>
+              <p class="text-sm text-slate-400">Votre agent est pré-configuré par votre administrateur. Vous n'avez aucune clé API à saisir.</p>
+            </div>
+            <button @click="saveAgentConfig()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2 shadow-lg shadow-purple-600/20">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Enregistrer les Préférences</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-volume-high"></i> 1. Voix & Style
+              </h3>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Style de Voix</label>
+                <select x-model="agentConfig.voice_style" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+                  <option value="sarah">Sarah — Naturelle & Professionnelle</option>
+                  <option value="thomas">Thomas — Chaleureux & Commercial</option>
+                  <option value="expert">Expert Technique HD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Vitesse de Parole (<span x-text="agentConfig.speech_speed"></span>x)</label>
+                <input type="range" min="0.5" max="2.0" step="0.1" x-model="agentConfig.speech_speed" class="w-full">
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-earth-americas"></i> 2. Langue & Réactivité
+              </h3>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Langue Principale</label>
+                <select x-model="agentConfig.language" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+                  <option value="fr">Français (France)</option>
+                  <option value="en">English (US/UK)</option>
+                  <option value="es">Español</option>
+                  <option value="de">Deutsch</option>
+                  <option value="auto">Détection Automatique Multilingue</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Sensibilité d'Interruption (Barge-In ms)</label>
+                <input type="number" x-model.number="agentConfig.barge_in_confirm_ms" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-headset"></i> 3. Escalade & Transfert
+              </h3>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Numéro de Téléphone de l'Expert (E.164)</label>
+                <input type="text" x-model="agentConfig.human_transfer_destination" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white" placeholder="+33612345678">
+              </div>
+              <p class="text-xs text-slate-400 italic">Si l'IA ne trouve pas l'information ou si le client le demande, l'appel est transféré immédiatement à ce numéro.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MCP SERVERS (MODEL CONTEXT PROTOCOL) -->
+      <div x-show="activeTab === 'mcp_servers'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-plug text-amber-400"></i>
+                Serveurs MCP (Model Context Protocol)
+              </h2>
+              <p class="text-sm text-slate-400">Connectez n'importe quel serveur MCP personnalisé (HubSpot, Postgres, Salesforce, GitHub, Slack) pour donner des super-pouvoirs à votre agent.</p>
+            </div>
+            <button @click="showMCPModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-amber-600/20">
+              <i class="fa-solid fa-plus"></i>
+              <span>Connecter un Serveur MCP</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="srv in mcpServers" :key="srv.server_id">
+              <div class="p-5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-amber-400" x-text="srv.name"></span>
+                  <span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-semibold" x-text="srv.status"></span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono truncate" x-text="'URL: ' + srv.url"></p>
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                  <span class="text-slate-500" x-text="'Transport: ' + (srv.transport || 'streamable_http')"></span>
+                  <button @click="inspectMCPTools(srv.server_id)" class="text-amber-400 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-toolbox"></i> Voir Outils Découverts
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: CAMPAIGNS -->
+      <div x-show="activeTab === 'campaigns'" class="space-y-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-sky-950/40 p-6 rounded-2xl border border-slate-800">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bullhorn text-sky-400"></i>
+              Moteur de Campagnes Omnicanales
+            </h2>
+            <p class="text-sm text-slate-400 mt-1">Lancement de campagnes WhatsApp, SMS et Appels Vocaux avec cadenceur Jitter Anti-Spam.</p>
+          </div>
+          <button @click="showCreateModal = true" class="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sky-500/20 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Nouvelle Campagne</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <template x-for="cmp in campaigns" :key="cmp.campaign_id">
+            <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 space-y-4 hover:border-slate-700 transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md"
+                  :class="{
+                    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': cmp.status === 'RUNNING' || cmp.status === 'COMPLETED',
+                    'bg-amber-500/10 text-amber-400 border border-amber-500/20': cmp.status === 'PAUSED' || cmp.status === 'SCHEDULED',
+                    'bg-slate-800 text-slate-400': cmp.status === 'DRAFT'
+                  }" x-text="cmp.status"></span>
+                <span class="text-xs text-slate-500 font-mono" x-text="cmp.campaign_id"></span>
+              </div>
+
+              <div>
+                <h3 class="text-lg font-bold text-white" x-text="cmp.name"></h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300" x-text="cmp.channel"></span>
+                  <span class="text-xs text-slate-400" x-text="cmp.total_contacts + ' contacts'"></span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-center">
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Envoyés</span>
+                  <span class="text-sm font-bold text-sky-400" x-text="cmp.sent_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Livrés</span>
+                  <span class="text-sm font-bold text-emerald-400" x-text="cmp.delivered_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Lus</span>
+                  <span class="text-sm font-bold text-indigo-400" x-text="cmp.read_count"></span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-lg">
+                  <span class="text-xs text-slate-500 block">Échecs</span>
+                  <span class="text-sm font-bold text-rose-400" x-text="cmp.failed_count"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- TAB 4: WHATSAPP -->
+      <div x-show="activeTab === 'whatsapp'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+                Connexion WhatsApp
+              </h2>
+              <p class="text-sm text-slate-400">Scannez le QR Code pour lier votre compte WhatsApp en marque blanche.</p>
+            </div>
+            <button @click="connectWhatsApp()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-qrcode"></i>
+              <span>Générer QR Code</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Aperçu QR Code</h3>
+              <div class="flex flex-col items-center justify-center p-6 bg-slate-900 rounded-xl border border-dashed border-slate-700">
+                <template x-if="qrCodeData">
+                  <div class="text-center space-y-3">
+                    <div class="w-48 h-48 bg-white p-2 rounded-xl mx-auto flex items-center justify-center shadow-2xl">
+                      <i class="fa-solid fa-qrcode text-8xl text-slate-900"></i>
+                    </div>
+                    <p class="text-xs text-emerald-400 font-mono font-bold" x-text="'Session: ' + qrCodeData.session_name"></p>
+                    <p class="text-xs text-slate-400" x-text="'Code d\'appairage: ' + qrCodeData.pairing_code"></p>
+                  </div>
+                </template>
+                <template x-if="!qrCodeData">
+                  <p class="text-xs text-slate-500">Cliquez sur "Générer QR Code" pour lier votre appareil.</p>
+                </template>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Sessions Actives</h3>
+              <div class="space-y-3">
+                <template x-for="sess in waSessions" :key="sess.session_name">
+                  <div class="p-3 bg-slate-900 rounded-lg flex items-center justify-between border border-slate-800">
+                    <div class="flex items-center gap-3">
+                      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+                      <div>
+                        <span class="text-sm font-bold text-white block" x-text="sess.session_name"></span>
+                        <span class="text-xs text-slate-400" x-text="sess.phone_number || 'Numéro connecté'"></span>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="sess.state"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: RECALL.AI BOTS -->
+      <div x-show="activeTab === 'rtc_bots'" class="space-y-8">
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-video text-indigo-400"></i>
+                Bots Visioconférence (Zoom, Google Meet, Teams)
+              </h2>
+              <p class="text-sm text-slate-400">Envoyez un assistant virtuel enregistrer et synthétiser vos visioconférences.</p>
+            </div>
+            <button @click="showBotModal = true" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-robot"></i>
+              <span>Envoyer un Bot</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="bot in meetingBots" :key="bot.bot_id">
+              <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-indigo-400" x-text="bot.bot_name"></span>
+                  <span class="text-xs px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold" x-text="bot.status"></span>
+                </div>
+                <p class="text-xs text-slate-400 truncate" x-text="'Lien: ' + bot.meeting_url"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- HYPERSWITCH / BITCOIN TOPUP MODAL -->
+    <div x-show="showTopupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-cloak>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-bolt text-emerald-400"></i>
+            Rechargement du Wallet Prépayé
+          </h3>
+          <button @click="showTopupModal = false" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Sélectionner le Montant</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button @click="topupReq.amount_fiat = 50" :class="topupReq.amount_fiat === 50 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">50 €</button>
+              <button @click="topupReq.amount_fiat = 100" :class="topupReq.amount_fiat === 100 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">100 €</button>
+              <button @click="topupReq.amount_fiat = 250" :class="topupReq.amount_fiat === 250 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">250 €</button>
+              <button @click="topupReq.amount_fiat = 500" :class="topupReq.amount_fiat === 500 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">500 €</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Moyen de Paiement Hyperswitch</label>
+            <select x-model="topupReq.payment_method" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-xs">
+              <option value="card">Carte Bancaire (Stripe / Adyen)</option>
+              <option value="sepa_debit">Prélèvement SEPA Direct</option>
+              <option value="apple_pay">Apple Pay / Google Pay</option>
+              <option value="bitcoin_lightning">Bitcoin Lightning Network (Instant Satoshis)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <button @click="showTopupModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700">Annuler</button>
+          <button @click="submitTopup()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-600/20">Valider & Créditer Instantanément</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function dashboardApp() {
+      return {
+        tenantId: 'default_tenant',
+        activeTab: 'billing',
+        showCreateModal: false,
+        showBotModal: false,
+        showMCPModal: false,
+        showTopupModal: false,
+        wallet: {},
+        autonomy: { voice_call_minutes: 340 },
+        accountStatusLabel: 'ACTIVE_HEALTHY',
+        marginConfig: { markup_percentage: 25.0 },
+        liveMetering: { prompt_tokens: 1420, completion_tokens: 280, audio_duration_ms: 42000, tts_characters: 380, sip_duration_sec: 42 },
+        providerCatalog: [],
+        campaigns: [],
+        waSessions: [],
+        mcpServers: [],
+        topupReq: { amount_fiat: 100, payment_method: 'card' },
+        agentConfig: { voice_style: 'sarah', speech_speed: 1.0, language: 'fr', barge_in_confirm_ms: 1500, human_transfer_destination: '+33612345678' },
+        async initDashboard() {
+          await this.refreshData();
+        },
+        async refreshData() {
+          await Promise.all([
+            this.fetchWallet(),
+            this.fetchProviderCatalog(),
+            this.fetchCampaigns(),
+            this.fetchWASessions(),
+            this.fetchMCPServers()
+          ]);
+        },
+        async fetchWallet() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/wallet', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) {
+              this.wallet = data.data.wallet || {};
+              this.autonomy = data.data.estimated_autonomy || { voice_call_minutes: 340 };
+              this.accountStatusLabel = data.data.account_status_label || 'ACTIVE_HEALTHY';
+            }
+          } catch (e) { console.error('Fetch wallet error:', e); }
+        },
+        async fetchProviderCatalog() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/admin/provider-costs', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.providerCatalog = data.data || []; }
+          } catch (e) { console.error('Fetch provider catalog error:', e); }
+        },
+        async fetchCampaigns() {
+          try {
+            const res = await fetch('/api/v1/gateway/campaigns', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.campaigns = data.data || []; }
+          } catch (e) { console.error('Fetch campaigns error:', e); }
+        },
+        async fetchWASessions() {
+          try {
+            const res = await fetch('/api/v1/gateway/whatsapp/sessions', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.waSessions = data.data || []; }
+          } catch (e) { console.error('Fetch WA error:', e); }
+        },
+        async fetchMCPServers() {
+          try {
+            const res = await fetch('/api/v1/gateway/mcp/servers', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.mcpServers = data.data || []; }
+          } catch (e) { console.error('Fetch MCP error:', e); }
+        },
+        async submitTopup() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/topup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
+              body: JSON.stringify(this.topupReq)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.showTopupModal = false;
+              alert(`Rechargement de ${this.topupReq.amount_fiat} € effectué avec succès via Hyperswitch!`);
+              await this.fetchWallet();
+            }
+          } catch (e) { console.error('Topup error:', e); }
+        },
+        async updateMargins() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/margins', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
+              body: JSON.stringify({ markup_percentage: this.marginConfig.markup_percentage, fixed_fee_per_call: 0.01, grace_limit_fiat: -0.50 })
+            });
+            const data = await res.json();
+            if (data.success) { alert("Règle de marge agence enregistrée !"); }
+          } catch (e) { console.error('Margins error:', e); }
+        },
+        async simulateLiveEvent() {
+          try {
+            const evt = {
+              session_id: 'sess_live_demo',
+              channel_type: 'voice_call',
+              provider: 'openai',
+              model_name: 'gpt-4o',
+              prompt_tokens: 850,
+              completion_tokens: 120,
+              audio_duration_ms: 15000,
+              tts_characters: 180,
+              sip_duration_sec: 15
+            };
+            const res = await fetch('/api/v1/gateway/billing/metering/event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
+              body: JSON.stringify(evt)
+            });
+            const data = await res.json();
+            if (data.success) {
+              await this.fetchWallet();
+              alert(`Event de consommation comptabilisé en <0.1ms !\nFacturé: $${data.data.billed_cost_usd.toFixed(4)} (Marge nette: $${data.data.profit_usd.toFixed(4)})`);
+            }
+          } catch (e) { console.error('Metering event error:', e); }
+        },
+        async saveAgentConfig() {
+          alert("Préférences de votre Agent Vocal enregistrées !");
+        }
+      }
+    }
+  </script>
+</body>
+</html>

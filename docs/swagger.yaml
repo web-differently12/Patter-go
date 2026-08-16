@@ -1,0 +1,1914 @@
+basePath: /
+definitions:
+  brain.AudioAnalytics:
+    properties:
+      auto_chapters:
+        items:
+          $ref: '#/definitions/brain.Chapter'
+        type: array
+      pii_redacted:
+        type: boolean
+      sentiments:
+        items:
+          $ref: '#/definitions/brain.SentimentResult'
+        type: array
+      speaker_timeline:
+        items:
+          $ref: '#/definitions/brain.SpeakerUtterance'
+        type: array
+      talk_ratio:
+        additionalProperties:
+          type: number
+        description: 'e.g. {"Speaker_A": 0.65, "Speaker_B": 0.35}'
+        type: object
+      total_duration_sec:
+        type: number
+    type: object
+  brain.BANTQualification:
+    properties:
+      authority:
+        type: string
+      budget:
+        type: string
+      deal_score:
+        description: 0.0 - 1.0
+        type: number
+      need:
+        type: string
+      timing:
+        type: string
+    type: object
+  brain.Chapter:
+    properties:
+      end_ms:
+        type: integer
+      headline:
+        type: string
+      start_ms:
+        type: integer
+      summary:
+        type: string
+    type: object
+  brain.LeMURResponse:
+    properties:
+      action_items:
+        items:
+          type: string
+        type: array
+      analytics:
+        $ref: '#/definitions/brain.AudioAnalytics'
+      bant_qualification:
+        $ref: '#/definitions/brain.BANTQualification'
+      response:
+        type: string
+      task_type:
+        $ref: '#/definitions/brain.LeMURTaskType'
+      transcript_id:
+        type: string
+    type: object
+  brain.LeMURTaskType:
+    enum:
+    - summary
+    - action-items
+    - question-answer
+    - custom-task-bant
+    type: string
+    x-enum-varnames:
+    - LeMURTaskSummary
+    - LeMURTaskActionItems
+    - LeMURTaskQA
+    - LeMURTaskCustomBANT
+  brain.SentimentResult:
+    properties:
+      confidence:
+        type: number
+      sentiment:
+        description: '"POSITIVE", "NEUTRAL", "NEGATIVE"'
+        type: string
+      speaker:
+        type: string
+      text:
+        type: string
+    type: object
+  brain.SpeakerUtterance:
+    properties:
+      end_ms:
+        type: integer
+      speaker:
+        type: string
+      start_ms:
+        type: integer
+      text:
+        type: string
+    type: object
+  calendar.CalendarConfig:
+    properties:
+      api_key:
+        description: 1. Google Calendar / Outlook Credentials
+        type: string
+      auth_header:
+        type: string
+      calendar_id:
+        description: Primary calendar or specific ID
+        type: string
+      event_type_id:
+        description: 2. Cal.com / Calendly Specifics
+        type: string
+      oauth_token:
+        type: string
+      provider:
+        $ref: '#/definitions/calendar.CalendarProvider'
+      timezone:
+        description: Timezone
+        type: string
+      user_uri:
+        type: string
+      webhook_url:
+        description: 3. Custom Webhook
+        type: string
+    type: object
+  calendar.CalendarProvider:
+    enum:
+    - google_calendar
+    - outlook_office365
+    - cal_com
+    - calendly
+    - custom_webhook
+    type: string
+    x-enum-varnames:
+    - ProviderGoogleCalendar
+    - ProviderOutlook
+    - ProviderCalCom
+    - ProviderCalendly
+    - ProviderCustomWebhook
+  controller.CalendarRequest:
+    properties:
+      config:
+        $ref: '#/definitions/calendar.CalendarConfig'
+      raw_args:
+        type: string
+    required:
+    - raw_args
+    type: object
+  controller.LeMURRequest:
+    properties:
+      transcript_id:
+        type: string
+      utterances:
+        items:
+          $ref: '#/definitions/brain.SpeakerUtterance'
+        type: array
+    required:
+    - transcript_id
+    type: object
+  controller.RAGSearchRequest:
+    properties:
+      call_sid:
+        type: string
+      config:
+        $ref: '#/definitions/rag.KnowledgeBaseConfig'
+      query:
+        type: string
+    required:
+    - query
+    type: object
+  controller.TransferRequest:
+    properties:
+      call_sid:
+        type: string
+      destination:
+        type: string
+      raw_args:
+        type: string
+    required:
+    - call_sid
+    - destination
+    - raw_args
+    type: object
+  core.APIResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  dto.AudienceFilter:
+    properties:
+      contact_category_ids:
+        description: Categories to include
+        items:
+          type: string
+        type: array
+      excluded_tags:
+        description: Tags excluded
+        items:
+          type: string
+        type: array
+      match_logic:
+        description: '"AND" | "OR"'
+        type: string
+      required_tags:
+        description: Tags required
+        items:
+          type: string
+        type: array
+    type: object
+  dto.CampaignConfig:
+    properties:
+      audience_filter:
+        $ref: '#/definitions/dto.AudienceFilter'
+      campaign_id:
+        type: string
+      channel:
+        description: '"WHATSAPP", "SMS", "VOICE"'
+        type: string
+      media_urls:
+        items:
+          type: string
+        type: array
+      message_content:
+        type: string
+      message_type:
+        $ref: '#/definitions/dto.MessageType'
+      name:
+        type: string
+      random_delay_sec:
+        description: Anti-spam jitter base delay in seconds
+        type: integer
+      scheduled_for:
+        type: string
+      session_names:
+        items:
+          type: string
+        type: array
+      start_immediately:
+        type: boolean
+      targets:
+        items:
+          $ref: '#/definitions/dto.TargetContact'
+        type: array
+      tenant_id:
+        type: string
+    required:
+    - channel
+    - name
+    - session_names
+    type: object
+  dto.CampaignResponse:
+    properties:
+      campaign_id:
+        type: string
+      channel:
+        type: string
+      created_at:
+        type: string
+      delivered_count:
+        type: integer
+      failed_count:
+        type: integer
+      name:
+        type: string
+      read_count:
+        type: integer
+      scheduled_for:
+        type: string
+      sent_count:
+        type: integer
+      status:
+        description: '"DRAFT", "RUNNING", "PAUSED", "COMPLETED", "FAILED"'
+        type: string
+      tenant_id:
+        type: string
+      total_contacts:
+        type: integer
+    type: object
+  dto.ConnectWhatsAppRequest:
+    properties:
+      phone_number:
+        type: string
+      session_name:
+        type: string
+    required:
+    - session_name
+    type: object
+  dto.CreateInstanceRequest:
+    properties:
+      description:
+        type: string
+      instance_name:
+        type: string
+      webhook_url:
+        type: string
+    required:
+    - instance_name
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+      success:
+        type: boolean
+    type: object
+  dto.InstanceResponse:
+    properties:
+      created_at:
+        type: string
+      instance_id:
+        type: string
+      instance_name:
+        type: string
+      status:
+        description: '"CREATED", "CONNECTED", "DISCONNECTED"'
+        type: string
+      tenant_id:
+        type: string
+      webhook_url:
+        type: string
+    type: object
+  dto.MessageType:
+    enum:
+    - TEXT
+    - IMAGE
+    - VIDEO
+    - DOCUMENT
+    - VOICE_CALL
+    type: string
+    x-enum-varnames:
+    - TypeFreeText
+    - TypeImage
+    - TypeVideo
+    - TypeDocument
+    - TypeVoice
+  dto.QRCodeResponse:
+    properties:
+      expires_in:
+        type: integer
+      pairing_code:
+        type: string
+      qrcode_base64:
+        type: string
+      session_name:
+        type: string
+      status:
+        description: '"SCAN_QR_CODE", "WORKING", "CONNECTING"'
+        type: string
+    type: object
+  dto.SendContactRequest:
+    properties:
+      contact_name:
+        type: string
+      phone:
+        type: string
+      recipient:
+        type: string
+      session_name:
+        type: string
+    required:
+    - contact_name
+    - phone
+    - recipient
+    - session_name
+    type: object
+  dto.SendLocationRequest:
+    properties:
+      address:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      recipient:
+        type: string
+      session_name:
+        type: string
+    required:
+    - latitude
+    - longitude
+    - recipient
+    - session_name
+    type: object
+  dto.SendMediaRequest:
+    properties:
+      caption:
+        type: string
+      media_type:
+        description: '"image", "video", "document", "audio", "sticker"'
+        type: string
+      media_url:
+        type: string
+      recipient:
+        type: string
+      session_name:
+        type: string
+    required:
+    - media_type
+    - media_url
+    - recipient
+    - session_name
+    type: object
+  dto.SendMessageRequest:
+    properties:
+      message:
+        type: string
+      recipient:
+        description: E.164 format
+        type: string
+      session_name:
+        type: string
+    required:
+    - message
+    - recipient
+    - session_name
+    type: object
+  dto.SendMessageResponse:
+    properties:
+      message_id:
+        type: string
+      recipient:
+        type: string
+      session_name:
+        type: string
+      status:
+        description: '"SENT", "PENDING", "FAILED"'
+        type: string
+    type: object
+  dto.SessionStatusResponse:
+    properties:
+      connected:
+        type: boolean
+      phone_number:
+        type: string
+      session_name:
+        type: string
+      state:
+        description: '"WORKING", "DISCONNECTED", "CONNECTING", "PAIRING"'
+        type: string
+      tenant_id:
+        type: string
+    type: object
+  dto.TargetContact:
+    properties:
+      category_ids:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      opted_out:
+        type: boolean
+      phone:
+        description: E.164 format (e.g., +15551234567)
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.VoiceCampaignRequest:
+    properties:
+      campaign_name:
+        type: string
+      from_numbers:
+        items:
+          type: string
+        type: array
+      prompt_template:
+        type: string
+      random_delay_sec:
+        type: integer
+      target_phone_numbers:
+        items:
+          type: string
+        type: array
+    required:
+    - campaign_name
+    - from_numbers
+    - prompt_template
+    - target_phone_numbers
+    type: object
+  mcp.MCPServerConfig:
+    properties:
+      auth_headers:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        description: e.g. "HubSpot CRM MCP", "Postgres DB MCP"
+        type: string
+      server_id:
+        type: string
+      status:
+        description: '"CONNECTED", "DISCONNECTED"'
+        type: string
+      tenant_id:
+        type: string
+      transport:
+        $ref: '#/definitions/mcp.MCPServerTransport'
+      url:
+        description: e.g. "https://mcp.company.com/v1"
+        type: string
+    required:
+    - name
+    - url
+    type: object
+  mcp.MCPServerTransport:
+    enum:
+    - streamable_http
+    - sse
+    - websocket
+    type: string
+    x-enum-varnames:
+    - TransportHTTP
+    - TransportSSE
+    - TransportWebSocket
+  mcp.MCPTool:
+    properties:
+      description:
+        type: string
+      inputSchema:
+        additionalProperties: true
+        type: object
+      name:
+        type: string
+      server_id:
+        type: string
+    type: object
+  mcp.MCPToolCallRequest:
+    properties:
+      arguments:
+        additionalProperties: true
+        type: object
+      server_id:
+        type: string
+      tool_name:
+        type: string
+    required:
+    - server_id
+    - tool_name
+    type: object
+  mcp.MCPToolCallResponse:
+    properties:
+      content: {}
+      is_error:
+        type: boolean
+      tool_name:
+        type: string
+    type: object
+  rag.FallbackTransferPolicy:
+    properties:
+      confidence_threshold:
+        description: 'Ex: 0.75 (en dessous -> transfert)'
+        type: number
+      enable_auto_transfer:
+        description: Activer l'escalade vers un humain
+        type: boolean
+      hold_music_url:
+        description: Musique d'attente
+        type: string
+      transfer_destination:
+        description: Numéro E.164 ou SIP URI (+33612345678)
+        type: string
+      transfer_message:
+        description: Phrase prononcée avant de transférer
+        type: string
+      transfer_type:
+        description: '"WARM" (accompagné) ou "COLD" (direct)'
+        type: string
+    type: object
+  rag.KnowledgeBaseConfig:
+    properties:
+      auth_header_key:
+        type: string
+      auth_header_value:
+        type: string
+      custom_server_url:
+        description: 2. Custom Endpoint Config
+        type: string
+      fallback_transfer:
+        allOf:
+        - $ref: '#/definitions/rag.FallbackTransferPolicy'
+        description: 3. Règle d'Escalade & Auto-Transfert d'Appel
+      google_vertex_config:
+        description: 1. Google ADK / Vertex Search Config
+        properties:
+          datastore_id:
+            type: string
+          location:
+            description: '"global" ou "europe-west1"'
+            type: string
+          project_id:
+            type: string
+        type: object
+      provider:
+        $ref: '#/definitions/rag.KnowledgeBaseProvider'
+      top_k:
+        type: integer
+    type: object
+  rag.KnowledgeBaseProvider:
+    enum:
+    - builtin_pgvector
+    - google_vertex_search
+    - pinecone
+    - qdrant
+    - custom_endpoint
+    type: string
+    x-enum-varnames:
+    - ProviderBuiltInPGVector
+    - ProviderGoogleVertex
+    - ProviderPinecone
+    - ProviderQdrant
+    - ProviderCustomEndpoint
+  rag.SearchResult:
+    properties:
+      best_score:
+        type: number
+      chunks:
+        items:
+          type: string
+        type: array
+      transfer_needed:
+        type: boolean
+    type: object
+  rtc.BotStatus:
+    enum:
+    - joining
+    - in_call
+    - recording
+    - left
+    - failed
+    type: string
+    x-enum-varnames:
+    - StatusJoining
+    - StatusInCall
+    - StatusRecording
+    - StatusLeft
+    - StatusFailed
+  rtc.CreateMeetingBotRequest:
+    properties:
+      automatic_leave_when_alone:
+        type: boolean
+      avatar_url:
+        type: string
+      bot_name:
+        type: string
+      enable_chat_messaging:
+        type: boolean
+      enable_realtime_audio_stream:
+        type: boolean
+      enable_realtime_transcript:
+        type: boolean
+      language:
+        description: '"fr", "en", "es", "de", "auto"'
+        type: string
+      meeting_url:
+        type: string
+      platform:
+        $ref: '#/definitions/rtc.MeetingPlatform'
+      recording_mode:
+        $ref: '#/definitions/rtc.RecordingMode'
+      silence_timeout_minutes:
+        type: integer
+      system_prompt:
+        type: string
+      webhook_url:
+        type: string
+    required:
+    - meeting_url
+    type: object
+  rtc.MeetingBotResponse:
+    properties:
+      audio_stream_websocket_url:
+        type: string
+      avatar_url:
+        type: string
+      bot_id:
+        type: string
+      bot_name:
+        type: string
+      created_at:
+        type: string
+      language:
+        type: string
+      meeting_url:
+        type: string
+      platform:
+        $ref: '#/definitions/rtc.MeetingPlatform'
+      recording_mode:
+        $ref: '#/definitions/rtc.RecordingMode'
+      status:
+        $ref: '#/definitions/rtc.BotStatus'
+      tenant_id:
+        type: string
+      transcript_url:
+        type: string
+      video_recording_url:
+        type: string
+    type: object
+  rtc.MeetingPlatform:
+    enum:
+    - zoom
+    - google_meet
+    - teams
+    - webex
+    type: string
+    x-enum-varnames:
+    - PlatformZoom
+    - PlatformGoogleMeet
+    - PlatformMicrosoftTeams
+    - PlatformWebex
+  rtc.RecordingMode:
+    enum:
+    - speaker_view
+    - gallery_view
+    - audio_only
+    type: string
+    x-enum-varnames:
+    - RecordingSpeakerView
+    - RecordingGalleryView
+    - RecordingAudioOnly
+  service.QueryBrainRequest:
+    properties:
+      channel:
+        type: string
+      context:
+        additionalProperties:
+          type: string
+        type: object
+      query:
+        type: string
+    required:
+    - query
+    type: object
+  service.QueryBrainResponse:
+    properties:
+      answer:
+        type: string
+      confidence:
+        type: number
+      sources:
+        items:
+          type: string
+        type: array
+    type: object
+  service.SendSMSRequest:
+    properties:
+      from_number:
+        type: string
+      media_url:
+        type: string
+      message:
+        type: string
+      to_number:
+        type: string
+    required:
+    - from_number
+    - message
+    - to_number
+    type: object
+  service.SendSMSResponse:
+    properties:
+      message_id:
+        type: string
+      status:
+        type: string
+    type: object
+  service.VoiceCallRequest:
+    properties:
+      agent_id:
+        type: string
+      from_number:
+        type: string
+      prompt:
+        type: string
+      to_number:
+        type: string
+    required:
+    - from_number
+    - to_number
+    type: object
+  service.VoiceCallResponse:
+    properties:
+      call_id:
+        type: string
+      from_number:
+        type: string
+      status:
+        description: '"QUEUED", "RINGING", "IN_PROGRESS"'
+        type: string
+      to_number:
+        type: string
+    type: object
+  sip.SIPCallRequest:
+    properties:
+      agent_id:
+        type: string
+      audio_codec:
+        description: '"PCMU", "PCMA", "G722", "OPUS"'
+        type: string
+      enable_rtp:
+        type: boolean
+      from_user:
+        type: string
+      to_uri:
+        description: sip:user@domain or +33612345678
+        type: string
+      trunk_id:
+        type: string
+    required:
+    - from_user
+    - to_uri
+    - trunk_id
+    type: object
+  sip.SIPCallResponse:
+    properties:
+      call_id:
+        type: string
+      codec:
+        type: string
+      rtp_address:
+        type: string
+      sip_call_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        description: '"INVITE_SENT", "RINGING", "CONNECTED", "DISCONNECTED"'
+        type: string
+    type: object
+  sip.SIPTrunkConfig:
+    properties:
+      auth_domain:
+        type: string
+      outbound_uri:
+        type: string
+      password:
+        type: string
+      port:
+        description: Default 5060 or 5061 (TLS)
+        type: integer
+      provider:
+        $ref: '#/definitions/sip.SIPTrunkProvider'
+      registered:
+        type: boolean
+      server_host:
+        description: e.g. "sip.ovh.fr", "pbx.company.com"
+        type: string
+      tenant_id:
+        type: string
+      trunk_id:
+        type: string
+      username:
+        type: string
+    required:
+    - server_host
+    - username
+    type: object
+  sip.SIPTrunkProvider:
+    enum:
+    - ovh_telecom
+    - 3cx
+    - freeswitch
+    - asterisk
+    - aircall
+    - custom_sip
+    type: string
+    x-enum-varnames:
+    - TrunkOVHTelecom
+    - Trunk3CX
+    - TrunkFreeSWITCH
+    - TrunkAsterisk
+    - TrunkAircall
+    - TrunkCustomSIP
+host: localhost:8080
+info:
+  contact:
+    name: API Support
+    url: https://github.com/lynxflow/patter-go
+  description: Omnichannel gateway, campaign engine, Direct Universal SIP Trunking
+    PBX, MCP (Model Context Protocol), Unified RAG Router, Recall.ai Meeting Bots
+    & Evolution Go Proxy
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Patter Engine Gateway & Campaign Engine API
+  version: "1.0"
+paths:
+  /api/v1/gateway/brain/calendar/availability:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments agenda
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CalendarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Vérifier la disponibilité de l'agenda (Google Calendar, Outlook, Cal.com,
+        Calendly)
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/calendar/book:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments réservation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CalendarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Réserver un créneau dans l'agenda
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/lemur/process:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres de l'appel
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LeMURRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/brain.LeMURResponse'
+              type: object
+      summary: Exécuter l'analyse Post-Call LeMUR v3 (BANT, Action Items, Talk-Ratio
+        & Sentiment)
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/query:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Requête IA
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.QueryBrainRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.QueryBrainResponse'
+              type: object
+      summary: Interroger le cerveau IA RAG & LeMUR v3
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/rag/search:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres RAG
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.RAGSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/rag.SearchResult'
+              type: object
+      summary: Recherche RAG Unifiée avec règle d'escalade automatique
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/brain/transfer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments de transfert
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Invoquer le skill de transfert vers un humain avec consentement oral
+      tags:
+      - Gateway - Brain
+  /api/v1/gateway/campaigns:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.CampaignResponse'
+                  type: array
+              type: object
+      summary: Lister les campagnes du Tenant
+      tags:
+      - Gateway - Campaigns
+    post:
+      consumes:
+      - application/json
+      description: Déclenche une campagne avec cadenceur anti-spam jitter et rotation
+        de sessions
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration de la campagne
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CampaignConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CampaignResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Lancer une campagne omnicanale (WhatsApp, SMS, Voice)
+      tags:
+      - Gateway - Campaigns
+  /api/v1/gateway/campaigns/{id}:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID de la campagne
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CampaignResponse'
+              type: object
+      summary: Obtenir les détails d'une campagne
+      tags:
+      - Gateway - Campaigns
+  /api/v1/gateway/campaigns/{id}/pause:
+    post:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID de la campagne
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Mettre en pause une campagne
+      tags:
+      - Gateway - Campaigns
+  /api/v1/gateway/campaigns/{id}/resume:
+    post:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID de la campagne
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Reprendre une campagne en pause
+      tags:
+      - Gateway - Campaigns
+  /api/v1/gateway/instances:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.InstanceResponse'
+                  type: array
+              type: object
+      summary: Lister les instances du Tenant
+      tags:
+      - Gateway - Instances
+    post:
+      consumes:
+      - application/json
+      description: Initialise un nouvel espace d'isolation pour le tenant
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration de l'instance
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateInstanceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InstanceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Créer une instance White-Label
+      tags:
+      - Gateway - Instances
+  /api/v1/gateway/instances/{id}:
+    delete:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID de l'instance
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Supprimer une instance
+      tags:
+      - Gateway - Instances
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID de l'instance
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InstanceResponse'
+              type: object
+      summary: Obtenir les détails d'une instance
+      tags:
+      - Gateway - Instances
+  /api/v1/gateway/mcp/servers:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mcp.MCPServerConfig'
+                  type: array
+              type: object
+      summary: Lister les serveurs MCP connectés au Tenant
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+    post:
+      consumes:
+      - application/json
+      description: Intègre des outils externes (HubSpot, Postgres, GitHub, Slack)
+        via MCP
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration Serveur MCP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mcp.MCPServerConfig'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/mcp.MCPServerConfig'
+              type: object
+      summary: Connecter un serveur MCP (Model Context Protocol)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+  /api/v1/gateway/mcp/servers/{id}/tools:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID du Serveur MCP
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mcp.MCPTool'
+                  type: array
+              type: object
+      summary: Découvrir les outils exposés par un serveur MCP (tools/list)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+  /api/v1/gateway/mcp/tools/execute:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Arguments de l'outil
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mcp.MCPToolCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/mcp.MCPToolCallResponse'
+              type: object
+      summary: Exécuter un outil MCP (tools/call)
+      tags:
+      - Gateway - Model Context Protocol (MCP)
+  /api/v1/gateway/messaging/sms:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres du SMS
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.SendSMSRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.SendSMSResponse'
+              type: object
+      summary: Envoyer un SMS / MMS
+      tags:
+      - Gateway - Messaging
+  /api/v1/gateway/rtc/bot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration du Bot
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/rtc.CreateMeetingBotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/rtc.MeetingBotResponse'
+              type: object
+      summary: Déployer un Bot d'Appel Visio (Zoom, Google Meet, MS Teams, Webex via
+        Recall.ai)
+      tags:
+      - Gateway - Meeting Bots (RTC)
+  /api/v1/gateway/rtc/bots:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/rtc.MeetingBotResponse'
+                  type: array
+              type: object
+      summary: Lister les Bots de visioconférence actifs du Tenant
+      tags:
+      - Gateway - Meeting Bots (RTC)
+  /api/v1/gateway/rtc/bots/{id}/leave:
+    post:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: ID du Bot
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/core.APIResponse'
+      summary: Demander au Bot de quitter la visioconférence
+      tags:
+      - Gateway - Meeting Bots (RTC)
+  /api/v1/gateway/sip/call:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres de l'appel SIP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sip.SIPCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/sip.SIPCallResponse'
+              type: object
+      summary: Emettre un appel via Trunk SIP direct sans Twilio
+      tags:
+      - Gateway - Direct SIP Trunking PBX
+  /api/v1/gateway/sip/trunks:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/sip.SIPTrunkConfig'
+                  type: array
+              type: object
+      summary: Lister les Trunks SIP configurés pour le Tenant
+      tags:
+      - Gateway - Direct SIP Trunking PBX
+    post:
+      consumes:
+      - application/json
+      description: Bypass Twilio en connectant directement le PBX / Standard Téléphonique
+        du client
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration Trunk SIP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sip.SIPTrunkConfig'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/sip.SIPTrunkConfig'
+              type: object
+      summary: Enregistrer un Trunk SIP Universel (OVH, 3CX, FreeSWITCH, Asterisk,
+        Aircall)
+      tags:
+      - Gateway - Direct SIP Trunking PBX
+  /api/v1/gateway/voice/call:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres de l'appel
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.VoiceCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.VoiceCallResponse'
+              type: object
+      summary: Initier un appel vocal entrant / sortant avec Agent IA
+      tags:
+      - Gateway - Voice
+  /api/v1/gateway/voice/campaign:
+    post:
+      consumes:
+      - application/json
+      description: Déclenche une campagne d'appels de masse avec cadenceur aléatoire
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Configuration de la campagne
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VoiceCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CampaignResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Lancer une campagne vocale avec Jitter Anti-Spam
+      tags:
+      - Gateway - Voice Campaigns
+  /api/v1/gateway/whatsapp/connect:
+    post:
+      consumes:
+      - application/json
+      description: Inscrit une nouvelle session WhatsApp sous la marque blanche du
+        Tenant
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Information de la session
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConnectWhatsAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QRCodeResponse'
+              type: object
+      summary: Connecter une session WhatsApp (Evolution Go)
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/contact/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres contact
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SendMessageResponse'
+              type: object
+      summary: Envoyer une carte de contact VCard WhatsApp
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/location/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres localisation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendLocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SendMessageResponse'
+              type: object
+      summary: Envoyer une localisation GPS WhatsApp
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/media/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Paramètres média
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendMediaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SendMessageResponse'
+              type: object
+      summary: Envoyer un média WhatsApp (Image, Vidéo, Document, Audio, Sticker)
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/message/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Contenu du message
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SendMessageResponse'
+              type: object
+      summary: Envoyer un message WhatsApp texte
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/qrcode:
+    get:
+      description: Renvoie le QR Code Base64 pour authentification marque blanche
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      - description: Nom de la session
+        in: path
+        name: session
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QRCodeResponse'
+              type: object
+      summary: Obtenir le QR Code d'une session WhatsApp
+      tags:
+      - Gateway - WhatsApp
+  /api/v1/gateway/whatsapp/sessions:
+    get:
+      parameters:
+      - description: ID du Tenant White-Label
+        in: header
+        name: X-Tenant-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/core.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.SessionStatusResponse'
+                  type: array
+              type: object
+      summary: Lister les sessions WhatsApp du Tenant
+      tags:
+      - Gateway - WhatsApp
+swagger: "2.0"
