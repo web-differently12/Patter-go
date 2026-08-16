@@ -43,8 +43,8 @@ const (
 )
 
 type TranscriptionOptions struct {
-	Provider       string   `json:"provider,omitempty"`       // "assemblyai", "deepgram", "gladia", "whisper"
-	Language       string   `json:"language,omitempty"`       // "fr", "en", "es", "de", "auto"
+	Provider         string   `json:"provider,omitempty"`       // "assemblyai", "deepgram", "gladia", "whisper"
+	Language         string   `json:"language,omitempty"`       // "fr", "en", "es", "de", "auto"
 	CustomVocabulary []string `json:"custom_vocabulary,omitempty"`
 }
 
@@ -62,31 +62,31 @@ type VideoOptions struct {
 }
 
 type TenantMeetingSettings struct {
-	TenantID             string                 `json:"tenant_id"`
-	DefaultBotName       string                 `json:"default_bot_name"`
-	DefaultAvatarURL     string                 `json:"default_avatar_url"`
-	DefaultLanguage      string                 `json:"default_language"`
-	TranscriptionOptions TranscriptionOptions   `json:"transcription_options"`
-	AutomaticLeave       AutomaticLeaveOptions  `json:"automatic_leave"`
-	VideoOptions         VideoOptions           `json:"video_options"`
-	WebhookEvents        []string               `json:"webhook_events"` // "bot.status_change", "transcript.chunk", "recording.done"
-	WebhookURL           string                 `json:"webhook_url"`
+	TenantID             string                `json:"tenant_id"`
+	DefaultBotName       string                `json:"default_bot_name"`
+	DefaultAvatarURL     string                `json:"default_avatar_url"`
+	DefaultLanguage      string                `json:"default_language"`
+	TranscriptionOptions TranscriptionOptions  `json:"transcription_options"`
+	AutomaticLeave       AutomaticLeaveOptions `json:"automatic_leave"`
+	VideoOptions         VideoOptions          `json:"video_options"`
+	WebhookEvents        []string              `json:"webhook_events"` // "bot.status_change", "transcript.chunk", "recording.done"
+	WebhookURL           string                `json:"webhook_url"`
 }
 
 type MeetingProfile struct {
-	ProfileID                     string `json:"profile_id"`
-	TenantID                      string `json:"tenant_id"`
-	Name                          string `json:"name" binding:"required"`
-	EnableSpeakerDiarization      bool   `json:"enable_speaker_diarization"`
-	EnableActionItemsExtraction   bool   `json:"enable_action_items_extraction"`
-	EnableParticipantSentiment    bool   `json:"enable_participant_sentiment"`
-	EnableLiveTranslation         bool   `json:"enable_live_translation"`
-	TargetTranslationLanguage     string `json:"target_translation_language,omitempty"`
-	EnableScreenShareRecording    bool   `json:"enable_screen_share_recording"`
-	SummaryTemplate               string `json:"summary_template"`
-	AutoLeaveOnSilenceMinutes     int    `json:"auto_leave_on_silence_minutes"`
-	AutoLeaveWhenEveryoneLeft     bool   `json:"auto_leave_when_everyone_left"`
-	CustomAvatarVideoURL          string `json:"custom_avatar_video_url,omitempty"`
+	ProfileID                   string `json:"profile_id"`
+	TenantID                    string `json:"tenant_id"`
+	Name                        string `json:"name" binding:"required"`
+	EnableSpeakerDiarization    bool   `json:"enable_speaker_diarization"`
+	EnableActionItemsExtraction bool   `json:"enable_action_items_extraction"`
+	EnableParticipantSentiment  bool   `json:"enable_participant_sentiment"`
+	EnableLiveTranslation       bool   `json:"enable_live_translation"`
+	TargetTranslationLanguage   string `json:"target_translation_language,omitempty"`
+	EnableScreenShareRecording  bool   `json:"enable_screen_share_recording"`
+	SummaryTemplate             string `json:"summary_template"`
+	AutoLeaveOnSilenceMinutes   int    `json:"auto_leave_on_silence_minutes"`
+	AutoLeaveWhenEveryoneLeft   bool   `json:"auto_leave_when_everyone_left"`
+	CustomAvatarVideoURL        string `json:"custom_avatar_video_url,omitempty"`
 }
 
 type CreateMeetingBotRequest struct {
@@ -113,25 +113,26 @@ type SendMeetingChatMessageRequest struct {
 }
 
 type MeetingBotResponse struct {
-	BotID                   string                 `json:"bot_id"`
-	TenantID                string                 `json:"tenant_id"`
-	ProfileID               string                 `json:"profile_id,omitempty"`
-	MeetingURL              string                 `json:"meeting_url"`
-	BotName                 string                 `json:"bot_name"`
-	AvatarURL               string                 `json:"avatar_url,omitempty"`
-	Platform                MeetingPlatform        `json:"platform"`
-	Status                  BotStatus              `json:"status"`
-	Language                string                 `json:"language"`
-	RecordingMode           RecordingMode          `json:"recording_mode"`
-	VideoRecordingURL       string                 `json:"video_recording_url,omitempty"`
-	TranscriptURL           string                 `json:"transcript_url,omitempty"`
-	AudioStreamWebSocketURL string                 `json:"audio_stream_websocket_url,omitempty"`
-	TranscriptionOptions    TranscriptionOptions   `json:"transcription_options"`
-	AutomaticLeave          AutomaticLeaveOptions  `json:"automatic_leave"`
-	CreatedAt               time.Time              `json:"created_at"`
+	BotID                   string                `json:"bot_id"`
+	TenantID                string                `json:"tenant_id"`
+	ProfileID               string                `json:"profile_id,omitempty"`
+	MeetingURL              string                `json:"meeting_url"`
+	BotName                 string                `json:"bot_name"`
+	AvatarURL               string                `json:"avatar_url,omitempty"`
+	Platform                MeetingPlatform       `json:"platform"`
+	Status                  BotStatus             `json:"status"`
+	Language                string                `json:"language"`
+	RecordingMode           RecordingMode         `json:"recording_mode"`
+	VideoRecordingURL       string                `json:"video_recording_url,omitempty"`
+	TranscriptURL           string                `json:"transcript_url,omitempty"`
+	AudioStreamWebSocketURL string                `json:"audio_stream_websocket_url,omitempty"`
+	TranscriptionOptions    TranscriptionOptions  `json:"transcription_options"`
+	AutomaticLeave          AutomaticLeaveOptions `json:"automatic_leave"`
+	CreatedAt               time.Time             `json:"created_at"`
+	ProviderUsed            string                `json:"provider_used"` // e.g. "patter_native_rtc" or "patter_premium_engine"
 }
 
-type RecallAIService interface {
+type MeetingEngineService interface {
 	SaveTenantMeetingSettings(ctx context.Context, tenantID string, settings TenantMeetingSettings) (*TenantMeetingSettings, error)
 	GetTenantMeetingSettings(ctx context.Context, tenantID string) (*TenantMeetingSettings, error)
 	CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error)
@@ -144,7 +145,7 @@ type RecallAIService interface {
 	LeaveMeeting(ctx context.Context, tenantID, botID string) error
 }
 
-type recallAIService struct {
+type meetingEngineService struct {
 	apiKey         string
 	httpClient     *http.Client
 	logger         *slog.Logger
@@ -154,14 +155,14 @@ type recallAIService struct {
 	bots           map[string]*MeetingBotResponse
 }
 
-func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
+func NewMeetingEngineService(apiKey string, logger *slog.Logger) MeetingEngineService {
 	if logger == nil {
 		logger = core.GetLogger()
 	}
-	svc := &recallAIService{
+	svc := &meetingEngineService{
 		apiKey:         apiKey,
 		httpClient:     &http.Client{Timeout: 10 * time.Second},
-		logger:         logger.With("component", "recall_ai"),
+		logger:         logger.With("component", "patter_meeting_engine"),
 		tenantSettings: make(map[string]*TenantMeetingSettings),
 		profiles:       make(map[string]*MeetingProfile),
 		bots:           make(map[string]*MeetingBotResponse),
@@ -193,7 +194,7 @@ func NewRecallAIService(apiKey string, logger *slog.Logger) RecallAIService {
 	return svc
 }
 
-func (s *recallAIService) SaveTenantMeetingSettings(ctx context.Context, tenantID string, settings TenantMeetingSettings) (*TenantMeetingSettings, error) {
+func (s *meetingEngineService) SaveTenantMeetingSettings(ctx context.Context, tenantID string, settings TenantMeetingSettings) (*TenantMeetingSettings, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -202,16 +203,16 @@ func (s *recallAIService) SaveTenantMeetingSettings(ctx context.Context, tenantI
 	return &settings, nil
 }
 
-func (s *recallAIService) GetTenantMeetingSettings(ctx context.Context, tenantID string) (*TenantMeetingSettings, error) {
+func (s *meetingEngineService) GetTenantMeetingSettings(ctx context.Context, tenantID string) (*TenantMeetingSettings, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	settings, ok := s.tenantSettings[tenantID]
 	if !ok {
 		return &TenantMeetingSettings{
-			TenantID:         tenantID,
-			DefaultBotName:   "Patter AI Agent",
-			DefaultLanguage:  "fr",
+			TenantID:       tenantID,
+			DefaultBotName: "Patter AI Agent",
+			DefaultLanguage: "fr",
 			TranscriptionOptions: TranscriptionOptions{
 				Provider: "assemblyai",
 				Language: "fr",
@@ -225,7 +226,7 @@ func (s *recallAIService) GetTenantMeetingSettings(ctx context.Context, tenantID
 	return settings, nil
 }
 
-func (s *recallAIService) CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error) {
+func (s *meetingEngineService) CreateMeetingProfile(ctx context.Context, tenantID string, prof MeetingProfile) (*MeetingProfile, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -240,7 +241,7 @@ func (s *recallAIService) CreateMeetingProfile(ctx context.Context, tenantID str
 	return &prof, nil
 }
 
-func (s *recallAIService) GetMeetingProfile(ctx context.Context, tenantID, profileID string) (*MeetingProfile, error) {
+func (s *meetingEngineService) GetMeetingProfile(ctx context.Context, tenantID, profileID string) (*MeetingProfile, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -251,7 +252,7 @@ func (s *recallAIService) GetMeetingProfile(ctx context.Context, tenantID, profi
 	return prof, nil
 }
 
-func (s *recallAIService) ListMeetingProfiles(ctx context.Context, tenantID string) ([]*MeetingProfile, error) {
+func (s *meetingEngineService) ListMeetingProfiles(ctx context.Context, tenantID string) ([]*MeetingProfile, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -264,7 +265,7 @@ func (s *recallAIService) ListMeetingProfiles(ctx context.Context, tenantID stri
 	return result, nil
 }
 
-func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error) {
+func (s *meetingEngineService) CreateMeetingBot(ctx context.Context, tenantID string, req CreateMeetingBotRequest) (*MeetingBotResponse, error) {
 	botID := "bot_" + uuid.New().String()[:8]
 
 	tenantCfg, _ := s.GetTenantMeetingSettings(ctx, tenantID)
@@ -292,6 +293,12 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 		autoLeave = *req.AutomaticLeave
 	}
 
+	// Cost Optimization Routing
+	providerUsed := "patter_native_rtc"
+	if req.VideoOptions != nil || req.EnableRealtimeAudioStream {
+		providerUsed = "patter_premium_engine"
+	}
+
 	bot := &MeetingBotResponse{
 		BotID:                   botID,
 		TenantID:                tenantID,
@@ -303,10 +310,11 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 		Status:                  StatusJoining,
 		Language:                lang,
 		RecordingMode:           req.RecordingMode,
-		AudioStreamWebSocketURL: fmt.Sprintf("wss://recall.ai/ws/audio/%s", botID),
+		AudioStreamWebSocketURL: fmt.Sprintf("wss://api.patter.ai/ws/audio/%s", botID),
 		TranscriptionOptions:    trxOpts,
 		AutomaticLeave:          autoLeave,
 		CreatedAt:               time.Now(),
+		ProviderUsed:            providerUsed,
 	}
 
 	s.mu.Lock()
@@ -328,15 +336,15 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 				"silence_timeout":       autoLeave.SilenceTimeoutSec,
 			},
 		})
-		httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.recall.ai/api/v1/bot", bytes.NewBuffer(payload))
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.patter.ai/v1/internal/bot", bytes.NewBuffer(payload))
 		if err == nil {
-			httpReq.Header.Set("Authorization", "Token "+s.apiKey)
+			httpReq.Header.Set("Authorization", "Bearer "+s.apiKey)
 			httpReq.Header.Set("Content-Type", "application/json")
 			resp, err := s.httpClient.Do(httpReq)
 			if err == nil {
 				defer resp.Body.Close()
 				body, _ := io.ReadAll(resp.Body)
-				s.logger.Info("Recall.ai bot creation API response", "status", resp.StatusCode, "len", len(body))
+				s.logger.Info("Patter meeting bot creation response", "status", resp.StatusCode, "len", len(body))
 			}
 		}
 	}
@@ -344,7 +352,7 @@ func (s *recallAIService) CreateMeetingBot(ctx context.Context, tenantID string,
 	return bot, nil
 }
 
-func (s *recallAIService) GetBotStatus(ctx context.Context, tenantID, botID string) (*MeetingBotResponse, error) {
+func (s *meetingEngineService) GetBotStatus(ctx context.Context, tenantID, botID string) (*MeetingBotResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -355,7 +363,7 @@ func (s *recallAIService) GetBotStatus(ctx context.Context, tenantID, botID stri
 	return bot, nil
 }
 
-func (s *recallAIService) ListBots(ctx context.Context, tenantID string) ([]*MeetingBotResponse, error) {
+func (s *meetingEngineService) ListBots(ctx context.Context, tenantID string) ([]*MeetingBotResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -368,7 +376,7 @@ func (s *recallAIService) ListBots(ctx context.Context, tenantID string) ([]*Mee
 	return result, nil
 }
 
-func (s *recallAIService) SendChatMessage(ctx context.Context, tenantID string, req SendMeetingChatMessageRequest) error {
+func (s *meetingEngineService) SendChatMessage(ctx context.Context, tenantID string, req SendMeetingChatMessageRequest) error {
 	s.mu.RLock()
 	bot, ok := s.bots[tenantID+":"+req.BotID]
 	s.mu.RUnlock()
@@ -380,7 +388,7 @@ func (s *recallAIService) SendChatMessage(ctx context.Context, tenantID string, 
 	return nil
 }
 
-func (s *recallAIService) LeaveMeeting(ctx context.Context, tenantID, botID string) error {
+func (s *meetingEngineService) LeaveMeeting(ctx context.Context, tenantID, botID string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

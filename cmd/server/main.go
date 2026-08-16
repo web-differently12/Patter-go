@@ -62,7 +62,7 @@ func main() {
 	msgSvc := messagingSvc.NewMessagingService()
 	bSvc := brainSvc.NewBrainService()
 	mcpSvc := mcpCtrl.NewMCPService(logger)
-	recallSvc := rtc.NewRecallAIService(os.Getenv("RECALL_AI_API_KEY"), logger)
+	meetingEngineSvc := rtc.NewMeetingEngineService(os.Getenv("PATTER_MEETING_ENGINE_KEY"), logger)
 	sipSvc := sip.NewSIPPBXService(logger)
 
 	// Initialize Controllers
@@ -72,7 +72,7 @@ func main() {
 	vController := voiceCtrl.NewVoiceController(vSvc)
 	msgController := messagingCtrl.NewMessagingController(msgSvc)
 	bController := brainCtrl.NewBrainController(bSvc)
-	recallController := rtc.NewRecallController(recallSvc)
+	recallController := rtc.NewRecallController(meetingEngineSvc)
 	sipController := sip.NewSIPController(sipSvc)
 	mcpController := mcpCtrl.NewMCPController(mcpSvc)
 
@@ -139,7 +139,7 @@ func main() {
 		api.POST("/brain/calendar/book", bController.CalendarBook)
 		api.POST("/brain/lemur/process", bController.ProcessLeMUR)
 
-		// Meeting Bots & Profiles (Recall.ai Zoom / Google Meet / Teams / Webex)
+		// Meeting Bots & Profiles (Patter White-Label Meeting Engine)
 		api.POST("/rtc/profiles", recallController.CreateMeetingProfile)
 		api.GET("/rtc/profiles", recallController.ListMeetingProfiles)
 		api.POST("/rtc/bot", recallController.CreateBot)

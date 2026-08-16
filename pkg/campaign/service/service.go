@@ -253,7 +253,17 @@ func (s *campaignService) runExecution(ctx context.Context, cfg dto.CampaignConf
 		cfg.SessionNames = []string{"default_session"}
 	}
 
-	for i, target := range targets {
+	// Resume from last sent count index
+	s.mu.RLock()
+	startIndex := 0
+	if currentResp, ok := s.campaigns[cfg.CampaignID]; ok {
+		startIndex = currentResp.SentCount
+	}
+	s.mu.RUnlock()
+
+	for i := startIndex; i < len(targets); i++ {
+		target := targets[i]
+
 		s.mu.RLock()
 		currentResp, ok := s.campaigns[cfg.CampaignID]
 		s.mu.RUnlock()
@@ -301,7 +311,7 @@ func (s *campaignService) dispatchWithRetry(campaignID, channel, session, recipi
 			"body", body,
 			"attempt", attempt,
 		)
-		break // Simulate success on attempt 1
+		break
 	}
 	_ = backoff
 }

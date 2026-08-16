@@ -8,7 +8,7 @@ import (
 )
 
 func TestRecallAIBotLifecycle(t *testing.T) {
-	svc := rtc.NewRecallAIService("", nil)
+	svc := rtc.NewMeetingEngineService("", nil)
 
 	req := rtc.CreateMeetingBotRequest{
 		MeetingURL:               "https://meet.google.com/xyz-uvwx-rst",
@@ -52,7 +52,7 @@ func TestRecallAIBotLifecycle(t *testing.T) {
 }
 
 func TestMeetingProfileConfiguration(t *testing.T) {
-	svc := rtc.NewRecallAIService("", nil)
+	svc := rtc.NewMeetingEngineService("", nil)
 	ctx := context.Background()
 
 	prof, err := svc.CreateMeetingProfile(ctx, "tenant_test", rtc.MeetingProfile{
@@ -85,7 +85,7 @@ func TestMeetingProfileConfiguration(t *testing.T) {
 }
 
 func TestRecallAIBotAdvancedOptions(t *testing.T) {
-	svc := rtc.NewRecallAIService("", nil)
+	svc := rtc.NewMeetingEngineService("", nil)
 	ctx := context.Background()
 
 	settings, err := svc.SaveTenantMeetingSettings(ctx, "tenant_test", rtc.TenantMeetingSettings{

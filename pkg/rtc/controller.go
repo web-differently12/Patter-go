@@ -8,10 +8,10 @@ import (
 )
 
 type RecallController struct {
-	recallService RecallAIService
+	recallService MeetingEngineService
 }
 
-func NewRecallController(svc RecallAIService) *RecallController {
+func NewRecallController(svc MeetingEngineService) *RecallController {
 	return &RecallController{recallService: svc}
 }
 
@@ -60,7 +60,7 @@ func (ctrl *RecallController) ListMeetingProfiles(c *gin.Context) {
 }
 
 // CreateBot godoc
-// @Summary      Déployer un Bot d'Appel Visio (Zoom, Google Meet, MS Teams, Webex via Recall.ai)
+// @Summary      Déployer un Bot d'Appel Visio (Zoom, Google Meet, MS Teams, Webex via Patter Engine)
 // @Tags         Gateway - Meeting Bots (RTC)
 // @Accept       json
 // @Produce      json
