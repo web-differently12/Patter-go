@@ -1,3 +1,5 @@
+export type UserRole = 'super_admin' | 'agency' | 'tenant_enterprise';
+
 export type IntegrationMode = 'managed' | 'custom_app';
 
 export type ProviderId =
@@ -32,6 +34,8 @@ export interface TenantOAuthConfig {
 export interface ConnectedAccount {
   id: string;
   tenantId: string;
+  agencyId?: string;
+  agencyName?: string;
   provider: ProviderId;
   accountName: string;
   accountAvatar?: string;
