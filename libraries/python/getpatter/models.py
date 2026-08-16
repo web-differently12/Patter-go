@@ -1160,6 +1160,76 @@ class CallMetrics:
     context_tokens: int = 0
 
 
+@dataclass(frozen=True)
+class MeetingParticipant:
+    """Participant metadata in a meeting bot session."""
+
+    id: str
+    name: str
+    email: str | None = None
+    is_host: bool = False
+    joined_at: float | None = None
+
+
+@dataclass(frozen=True)
+class MeetingBotConfig:
+    """White-label configuration for dispatching meeting bots.
+
+    Fully encapsulates provider details (Recall.ai, Zoom RTMS, Google Meet Media API)
+    so tenants only interact with Patter neutral configurations.
+
+    Args:
+        meeting_url: Video meeting link (Zoom, Google Meet, MS Teams, Webex).
+        bot_name: Custom display name for the bot in the meeting participant list.
+        avatar_url: Custom image URL for the bot camera display.
+        automatic_leave: Auto-leave when last participant leaves or bot detected.
+        recording_mode: "audio_only", "speaker_view", or "gallery_view".
+    """
+
+    meeting_url: str
+    bot_name: str = "Patter Assistant"
+    avatar_url: str | None = None
+    automatic_leave: bool = True
+    recording_mode: Literal["audio_only", "speaker_view", "gallery_view"] = "audio_only"
+
+
+@dataclass(frozen=True)
+class CalendarSyncConfig:
+    """White-label calendar integration configuration (Calendar V2).
+
+    Supports Google Calendar and Microsoft Outlook event synchronization
+    and app-managed bot auto-scheduling without exposing vendor backend details.
+
+    Args:
+        calendar_type: "google_calendar" or "microsoft_outlook".
+        sync_events: Automatically pull calendar events and schedule bots.
+        auto_record_external: Automatically dispatch bots to external meetings.
+        webhook_url: Event update notification webhook endpoint.
+    """
+
+    calendar_type: Literal["google_calendar", "microsoft_outlook"]
+    sync_events: bool = True
+    auto_record_external: bool = False
+    webhook_url: str | None = None
+
+
+@dataclass(frozen=True)
+class MeetingMediaStreamConfig:
+    """Real-time bi-directional audio/video streaming configuration.
+
+    Args:
+        sample_rate: Audio sampling frequency in Hz (default 16000 Hz PCM).
+        enable_video_out: Stream video/screen output from the agent into the meeting.
+        enable_audio_out: Stream spoken agent audio into the meeting.
+        realtime_transcription: Receive real-time per-participant transcripts.
+    """
+
+    sample_rate: int = 16000
+    enable_video_out: bool = False
+    enable_audio_out: bool = True
+    realtime_transcription: bool = True
+
+
 # Carrier-agnostic terminal outcomes for an outbound call. ``answered`` means a
 # human (or at least a live connection) picked up and the conversation ran;
 # ``voicemail`` means AMD classified the callee as a machine; the remaining

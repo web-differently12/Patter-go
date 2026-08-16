@@ -1384,6 +1384,59 @@ export interface LocalCallOptions {
   readonly wait?: boolean;
 }
 
+/** Participant metadata in a meeting bot session. */
+export interface MeetingParticipant {
+  readonly id: string;
+  readonly name: string;
+  readonly email?: string;
+  readonly isHost?: boolean;
+  readonly joinedAt?: number;
+}
+
+/**
+ * White-label configuration for dispatching meeting bots.
+ *
+ * Fully encapsulates provider details (Recall.ai, Zoom RTMS, Google Meet Media API)
+ * so tenants only interact with Patter neutral configurations.
+ */
+export interface MeetingBotConfig {
+  /** Video meeting link (Zoom, Google Meet, MS Teams, Webex). */
+  readonly meetingUrl: string;
+  /** Custom display name for the bot in the meeting participant list. */
+  readonly botName?: string;
+  /** Custom image URL for the bot camera display. */
+  readonly avatarUrl?: string;
+  /** Auto-leave when last participant leaves or bot detected. Default true. */
+  readonly automaticLeave?: boolean;
+  /** Recording mode. Default "audio_only". */
+  readonly recordingMode?: 'audio_only' | 'speaker_view' | 'gallery_view';
+}
+
+/**
+ * White-label calendar integration configuration (Calendar V2).
+ *
+ * Supports Google Calendar and Microsoft Outlook event synchronization
+ * and app-managed bot auto-scheduling without exposing vendor backend details.
+ */
+export interface CalendarSyncConfig {
+  readonly calendarType: 'google_calendar' | 'microsoft_outlook';
+  readonly syncEvents?: boolean;
+  readonly autoRecordExternal?: boolean;
+  readonly webhookUrl?: string;
+}
+
+/** Real-time bi-directional audio/video streaming configuration. */
+export interface MeetingMediaStreamConfig {
+  /** Audio sampling frequency in Hz (default 16000 Hz PCM). */
+  readonly sampleRate?: number;
+  /** Stream video/screen output from the agent into the meeting. */
+  readonly enableVideoOut?: boolean;
+  /** Stream spoken agent audio into the meeting. */
+  readonly enableAudioOut?: boolean;
+  /** Receive real-time per-participant transcripts. */
+  readonly realtimeTranscription?: boolean;
+}
+
 /**
  * Carrier-agnostic terminal outcomes for an outbound call. `answered` means a
  * human (or at least a live connection) picked up and the conversation ran;
