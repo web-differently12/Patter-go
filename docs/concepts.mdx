@@ -101,9 +101,11 @@ Want fully custom LLM logic (multi-model routing, local models, an internal gate
 
 Three independent stages — swap any of them for a different vendor or local model:
 
-- **STT (Speech-to-Text)** — transcribes caller audio in real time. Providers: `DeepgramSTT`, `WhisperSTT`, `CartesiaSTT`, `SonioxSTT`, `SpeechmaticsSTT` (Python-only), `AssemblyAISTT`, `XaiSTT`, `FishAudioSTT`. See [STT](/python-sdk/stt).
-- **LLM (Large Language Model)** — generates the reply. Pass a class instance via `llm=`: `OpenAILLM`, `AnthropicLLM`, `GroqLLM`, `CerebrasLLM`, `GoogleLLM`. Tool calling works across all five. For anything else, use `on_message`. See [LLM](/python-sdk/llm).
-- **TTS (Text-to-Speech)** — synthesizes the reply audio. Providers: `ElevenLabsTTS`, `OpenAITTS`, `CartesiaTTS`, `RimeTTS`, `LMNTTTS`, `XaiTTS`, `FishAudioTTS`. See [TTS](/python-sdk/tts).
+- **STT (Speech-to-Text)** — transcribes caller audio in real time. Providers: `DeepgramSTT`, `WhisperSTT`, `CartesiaSTT`, `SonioxSTT`, `SpeechmaticsSTT` (Python-only), `AssemblyAISTT` (LeMUR BANT scoring), `XaiSTT`, `FishAudioSTT`. See [STT](/python-sdk/stt).
+- **LLM (Large Language Model)** — generates the reply. Pass a class instance via `llm=`: `OpenAILLM`, `AnthropicLLM`, `GroqLLM`, `CerebrasLLM`, `GoogleLLM`, `OpenRouterLLM`. Tool calling works across all providers. For anything else, use `on_message`. See [LLM](/python-sdk/llm).
+- **TTS (Text-to-Speech)** — synthesizes the reply audio. Providers: `ElevenLabsTTS`, `OpenAITTS`, `CartesiaTTS`, `RimeTTS`, `LMNTTTS`, `XaiTTS`, `FishAudioTTS` (WebSocket MessagePack), `SarvamBulbulTTS`. See [TTS](/python-sdk/tts).
+- **Avatar & WebRTC Infrastructure** — Real-time interactive avatar video generation (`SimliTTS` / Local GPU pool) and WebRTC media transport (`LiveKit`).
+- **Visio Meeting Engine** — Omnichannel bot dispatch for Zoom, Google Meet, MS Teams, and Webex (`Recall.ai` integration).
 
 Pick engine mode when you want minimum code. Pick pipeline mode when you need a specific LLM, a custom voice, or fine-grained control over latency / costs.
 
