@@ -19,6 +19,44 @@ func NewMCPController(svc MCPService) *MCPController {
 	}
 }
 
+// ListTemplates godoc
+// @Summary      Lister le catalogue des modèles d'intégration (Nango Template Catalogue)
+// @Tags         Gateway - Model Context Protocol (MCP)
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Success      200 {object} core.APIResponse{data=[]IntegrationTemplate}
+// @Router       /api/v1/gateway/integrations/templates [get]
+func (ctrl *MCPController) ListTemplates(c *gin.Context) {
+	resp := ctrl.hub.ListTemplates()
+	core.Success(c, resp)
+}
+
+// DeployTemplate godoc
+// @Summary      Déployer un modèle d'intégration en 1-Click (HubSpot, Salesforce, Google Workspace, Slack)
+// @Tags         Gateway - Model Context Protocol (MCP)
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body DeployTemplateRequest true "Information du modèle"
+// @Success      200 {object} core.APIResponse{data=DeployTemplateResponse}
+// @Router       /api/v1/gateway/integrations/templates/deploy [post]
+func (ctrl *MCPController) DeployTemplate(c *gin.Context) {
+	var req DeployTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.hub.DeployTemplate(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
 // GetN8NCommunityNodeSchema godoc
 // @Summary      Obtenir le schéma du nœud communautaire n8n / Make.com 1-Click
 // @Description  Génère automatiquement les spécifications de nœuds n8n pour les serveurs MCP et webhooks du Tenant

@@ -66,3 +66,25 @@ func TestN8NCommunityNodeSchema(t *testing.T) {
 		t.Errorf("Expected non-empty properties for 1-click n8n node")
 	}
 }
+
+func TestIntegrationTemplates(t *testing.T) {
+	svc := mcp.NewMCPService(nil)
+	hub := mcp.NewTenantIntegrationHub(svc)
+
+	templates := hub.ListTemplates()
+	if len(templates) == 0 {
+		t.Fatalf("Expected non-empty integration templates catalog")
+	}
+
+	dep, err := hub.DeployTemplate(context.Background(), "tenant_test", mcp.DeployTemplateRequest{
+		TemplateID: "tpl_hubspot_crm_sync",
+		CustomName: "HubSpot Client Prod Sync",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error deploying integration template: %v", err)
+	}
+
+	if dep.IntegrationID == "" || dep.ServerID == "" {
+		t.Errorf("Expected valid IntegrationID and ServerID")
+	}
+}
