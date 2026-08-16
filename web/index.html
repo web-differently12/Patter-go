@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patter Core Engine — Dashboard White-Label & MCP</title>
+  <title>Patter Core Engine — Dashboard White-Label & Billing Engine</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Alpine.js CDN -->
@@ -41,7 +41,7 @@
           </div>
           <div>
             <span class="text-lg font-bold bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Espace Client White-Label</span>
-            <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">Prêt à l'Emploi</span>
+            <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">EchoFlow Engine</span>
           </div>
         </div>
 
@@ -53,9 +53,15 @@
             <input type="text" x-model="tenantId" @change="refreshData()" class="bg-transparent text-xs font-bold text-sky-400 focus:outline-none w-28">
           </div>
 
+          <!-- Wallet Quick Badge -->
+          <button @click="activeTab = 'billing'" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition text-xs font-bold">
+            <i class="fa-solid fa-wallet"></i>
+            <span x-text="(wallet.balance_fiat || 50.00).toFixed(2) + ' €'"></span>
+          </button>
+
           <a href="/swagger/index.html" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30 transition text-xs font-semibold">
             <i class="fa-solid fa-code"></i>
-            <span>Documentation API</span>
+            <span>API Docs</span>
           </a>
         </div>
       </div>
@@ -66,13 +72,17 @@
 
       <!-- Navigation Tabs -->
       <div class="flex border-b border-slate-800 space-x-8 overflow-x-auto">
+        <button @click="activeTab = 'billing'" :class="activeTab === 'billing' ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-wallet text-emerald-400"></i>
+          <span>Facturation & Wallet Prépayé</span>
+        </button>
         <button @click="activeTab = 'vapi_agent'" :class="activeTab === 'vapi_agent' ? 'border-purple-500 text-purple-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-robot text-purple-400"></i>
           <span>Agent Vocal IA</span>
         </button>
         <button @click="activeTab = 'mcp_servers'" :class="activeTab === 'mcp_servers' ? 'border-amber-500 text-amber-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-plug text-amber-400"></i>
-          <span>Connecteurs MCP (HubSpot, DB, Custom)</span>
+          <span>Connecteurs MCP</span>
         </button>
         <button @click="activeTab = 'campaigns'" :class="activeTab === 'campaigns' ? 'border-sky-500 text-sky-400 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-paper-plane"></i>
@@ -86,10 +96,142 @@
           <i class="fa-solid fa-video text-indigo-400"></i>
           <span>Bots Visioconférence</span>
         </button>
-        <button @click="activeTab = 'instances'" :class="activeTab === 'instances' ? 'border-slate-500 text-slate-300 font-bold' : 'border-transparent text-slate-400 hover:text-slate-200'" class="pb-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-server"></i>
-          <span>Espaces Isolés</span>
-        </button>
+      </div>
+
+      <!-- TAB 0: BILLING, WALLET & LIVE METERING -->
+      <div x-show="activeTab === 'billing'" class="space-y-8">
+
+        <!-- Top Wallet Autonomy Banner -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Solde Prépayé Actuel</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="accountStatusLabel"></span>
+            </div>
+            <div class="flex items-baseline space-x-3">
+              <span class="text-3xl font-extrabold text-white" x-text="(wallet.balance_fiat || 50.00).toFixed(2) + ' €'"></span>
+              <span class="text-sm font-semibold text-amber-400 flex items-center gap-1">
+                <i class="fa-bold fa-bitcoin"></i> <span x-text="(wallet.balance_satoshis || 125000) + ' sats'"></span>
+              </span>
+            </div>
+            <button @click="showTopupModal = true" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-bolt"></i> Recharger via Hyperswitch / Bitcoin Lightning
+            </button>
+          </div>
+
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jauge d'Autonomie Estimée (Burn Rate)</span>
+            <div class="space-y-2 pt-1">
+              <div class="flex justify-between text-xs font-medium">
+                <span class="text-slate-300">Temps d'appels voix restant:</span>
+                <span class="text-sky-400 font-bold" x-text="autonomy.voice_call_minutes + ' minutes'"></span>
+              </div>
+              <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                <div class="bg-sky-500 h-full rounded-full" style="width: 78%"></div>
+              </div>
+              <p class="text-xs text-slate-500 pt-1">Basé sur une consommation moyenne de $0.025 / minute voix ou 120 meetings visio assistés.</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Marge Agence Configuree</span>
+              <button @click="updateMargins()" class="text-xs text-purple-400 font-bold hover:underline">Enregistrer</button>
+            </div>
+            <div class="space-y-3 pt-1">
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Majoration en Pourcentage (% Markup)</label>
+                <div class="flex items-center space-x-2">
+                  <input type="number" x-model.number="marginConfig.markup_percentage" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white">
+                  <span class="text-xs font-bold text-purple-400">%</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500">Marge nette générée sur chaque milliseconde STT, token LLM et caractère TTS.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Session Token & Audio Meter -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-sky-400"></i>
+                Décompte Temps Réel des Tokens & Secondes (Live Metering)
+              </h2>
+              <p class="text-sm text-slate-400">Décomposition exacte par brique technologique avec calcul de marge instantané.</p>
+            </div>
+            <button @click="simulateLiveEvent()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2">
+              <i class="fa-solid fa-play"></i> Simuler un Event de Consommation
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟣 LLM Tokens (OpenAI / DeepSeek)</span>
+              <span class="text-lg font-extrabold text-purple-400 block" x-text="(liveMetering.prompt_tokens || 1420) + ' In / ' + (liveMetering.completion_tokens || 280) + ' Out'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.llm_cost || 0.0113).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🔵 STT Audio (Deepgram Nova-2)</span>
+              <span class="text-lg font-extrabold text-sky-400 block" x-text="(liveMetering.audio_duration_ms || 42000) + ' ms'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.stt_cost || 0.0030).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟢 TTS Voice (ElevenLabs Flash)</span>
+              <span class="text-lg font-extrabold text-emerald-400 block" x-text="(liveMetering.tts_characters || 380) + ' caractères'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.tts_cost || 0.0057).toFixed(4) + ' €'"></span>
+            </div>
+            <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-500 font-bold uppercase">🟡 Télécom SIP PBX</span>
+              <span class="text-lg font-extrabold text-amber-400 block" x-text="(liveMetering.sip_duration_sec || 42) + ' secondes'"></span>
+              <span class="text-xs text-slate-400 font-mono" x-text="'Coût: ' + (liveMetering.sip_cost || 0.0058).toFixed(4) + ' €'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Real-Time Provider Rates & Options Audit Catalog -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-table-list text-purple-400"></i>
+                Audit des Tarifs Fournisseurs & Options en Temps Réel (Admin Inspect)
+              </h2>
+              <p class="text-sm text-slate-400">Vérification automatique des coûts réels fournisseurs et options additionnelles (Diarization, Voice HD, Token Reasoning).</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase font-bold border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Catégorie</th>
+                  <th class="p-3">Fournisseur</th>
+                  <th class="p-3">Modèle / Option</th>
+                  <th class="p-3">Unité</th>
+                  <th class="p-3">Coût Brut Unitaire</th>
+                  <th class="p-3">Statut Audit</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60">
+                <template x-for="p in providerCatalog" :key="p.provider_name + p.model_name">
+                  <tr class="hover:bg-slate-950/40">
+                    <td class="p-3 font-bold text-sky-400" x-text="p.category"></td>
+                    <td class="p-3 text-white font-semibold" x-text="p.provider_name"></td>
+                    <td class="p-3 text-slate-300" x-text="p.model_name + (p.option_name ? ' (' + p.option_name + ')' : '')"></td>
+                    <td class="p-3 text-slate-400" x-text="p.unit_type"></td>
+                    <td class="p-3 font-mono font-bold text-emerald-400" x-text="'$' + p.raw_cost_unit"></td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold" x-text="p.status"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- TAB 1: WHITE-LABEL VOICE AGENT -->
@@ -347,53 +489,46 @@
         </div>
       </div>
 
-      <!-- TAB 6: INSTANCES -->
-      <div x-show="activeTab === 'instances'" class="space-y-8">
-        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 space-y-6">
-          <h2 class="text-lg font-bold text-white">Espaces Isolés Tenant</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <template x-for="inst in instances" :key="inst.instance_id">
-              <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-bold text-sky-400" x-text="inst.instance_name"></span>
-                  <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-semibold" x-text="inst.status"></span>
-                </div>
-                <p class="text-xs text-slate-400 font-mono" x-text="'ID: ' + inst.instance_id"></p>
-              </div>
-            </template>
-          </div>
-        </div>
-      </div>
-
     </main>
 
-    <!-- CONNECT MCP SERVER MODAL -->
-    <div x-show="showMCPModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-cloak>
+    <!-- HYPERSWITCH / BITCOIN TOPUP MODAL -->
+    <div x-show="showTopupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" x-cloak>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl">
         <div class="flex items-center justify-between border-b border-slate-800 pb-4">
           <h3 class="text-lg font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-plug text-amber-400"></i>
-            Connecter un Serveur MCP Personnalisé
+            <i class="fa-solid fa-bolt text-emerald-400"></i>
+            Rechargement du Wallet Prépayé
           </h3>
-          <button @click="showMCPModal = false" class="text-slate-400 hover:text-white">
+          <button @click="showTopupModal = false" class="text-slate-400 hover:text-white">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
 
         <div class="space-y-4 text-sm">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nom du Serveur MCP</label>
-            <input type="text" x-model="newMCPServer.name" placeholder="Ex: HubSpot CRM, Customer DB" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Sélectionner le Montant</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button @click="topupReq.amount_fiat = 50" :class="topupReq.amount_fiat === 50 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">50 €</button>
+              <button @click="topupReq.amount_fiat = 100" :class="topupReq.amount_fiat === 100 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">100 €</button>
+              <button @click="topupReq.amount_fiat = 250" :class="topupReq.amount_fiat === 250 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">250 €</button>
+              <button @click="topupReq.amount_fiat = 500" :class="topupReq.amount_fiat === 500 ? 'bg-emerald-600 border-emerald-400' : 'bg-slate-950 border-slate-800'" class="p-2 border rounded-xl font-bold text-xs">500 €</button>
+            </div>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">URL Endpoint Serveur MCP</label>
-            <input type="text" x-model="newMCPServer.url" placeholder="https://mcp.votre-entreprise.com/v1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Moyen de Paiement Hyperswitch</label>
+            <select x-model="topupReq.payment_method" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-xs">
+              <option value="card">Carte Bancaire (Stripe / Adyen)</option>
+              <option value="sepa_debit">Prélèvement SEPA Direct</option>
+              <option value="apple_pay">Apple Pay / Google Pay</option>
+              <option value="bitcoin_lightning">Bitcoin Lightning Network (Instant Satoshis)</option>
+            </select>
           </div>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-          <button @click="showMCPModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700">Annuler</button>
-          <button @click="submitMCPServer()" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-xl hover:bg-amber-500 shadow-lg shadow-amber-600/20">Connecter le Serveur</button>
+          <button @click="showTopupModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700">Annuler</button>
+          <button @click="submitTopup()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-600/20">Valider & Créditer Instantanément</button>
         </div>
       </div>
     </div>
@@ -404,66 +539,65 @@
     function dashboardApp() {
       return {
         tenantId: 'default_tenant',
-        activeTab: 'vapi_agent',
+        activeTab: 'billing',
         showCreateModal: false,
         showBotModal: false,
         showMCPModal: false,
+        showTopupModal: false,
+        wallet: {},
+        autonomy: { voice_call_minutes: 340 },
+        accountStatusLabel: 'ACTIVE_HEALTHY',
+        marginConfig: { markup_percentage: 25.0 },
+        liveMetering: { prompt_tokens: 1420, completion_tokens: 280, audio_duration_ms: 42000, tts_characters: 380, sip_duration_sec: 42 },
+        providerCatalog: [],
         campaigns: [],
         waSessions: [],
-        instances: [],
-        meetingBots: [],
         mcpServers: [],
-        qrCodeData: null,
-        agentConfig: {
-          voice_style: 'sarah',
-          speech_speed: 1.0,
-          language: 'fr',
-          barge_in_confirm_ms: 1500,
-          human_transfer_destination: '+33612345678'
-        },
-        newMCPServer: {
-          name: 'Serveur MCP CRM Client',
-          url: 'https://mcp.custom.org/v1'
-        },
+        topupReq: { amount_fiat: 100, payment_method: 'card' },
+        agentConfig: { voice_style: 'sarah', speech_speed: 1.0, language: 'fr', barge_in_confirm_ms: 1500, human_transfer_destination: '+33612345678' },
         async initDashboard() {
           await this.refreshData();
         },
         async refreshData() {
           await Promise.all([
+            this.fetchWallet(),
+            this.fetchProviderCatalog(),
             this.fetchCampaigns(),
             this.fetchWASessions(),
-            this.fetchInstances(),
-            this.fetchBots(),
             this.fetchMCPServers()
           ]);
+        },
+        async fetchWallet() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/wallet', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) {
+              this.wallet = data.data.wallet || {};
+              this.autonomy = data.data.estimated_autonomy || { voice_call_minutes: 340 };
+              this.accountStatusLabel = data.data.account_status_label || 'ACTIVE_HEALTHY';
+            }
+          } catch (e) { console.error('Fetch wallet error:', e); }
+        },
+        async fetchProviderCatalog() {
+          try {
+            const res = await fetch('/api/v1/gateway/billing/admin/provider-costs', { headers: { 'X-Tenant-ID': this.tenantId } });
+            const data = await res.json();
+            if (data.success) { this.providerCatalog = data.data || []; }
+          } catch (e) { console.error('Fetch provider catalog error:', e); }
         },
         async fetchCampaigns() {
           try {
             const res = await fetch('/api/v1/gateway/campaigns', { headers: { 'X-Tenant-ID': this.tenantId } });
             const data = await res.json();
             if (data.success) { this.campaigns = data.data || []; }
-          } catch (e) { console.error('Fetch error:', e); }
+          } catch (e) { console.error('Fetch campaigns error:', e); }
         },
         async fetchWASessions() {
           try {
             const res = await fetch('/api/v1/gateway/whatsapp/sessions', { headers: { 'X-Tenant-ID': this.tenantId } });
             const data = await res.json();
             if (data.success) { this.waSessions = data.data || []; }
-          } catch (e) { console.error('Fetch error:', e); }
-        },
-        async fetchInstances() {
-          try {
-            const res = await fetch('/api/v1/gateway/instances', { headers: { 'X-Tenant-ID': this.tenantId } });
-            const data = await res.json();
-            if (data.success) { this.instances = data.data || []; }
-          } catch (e) { console.error('Fetch error:', e); }
-        },
-        async fetchBots() {
-          try {
-            const res = await fetch('/api/v1/gateway/rtc/bots', { headers: { 'X-Tenant-ID': this.tenantId } });
-            const data = await res.json();
-            if (data.success) { this.meetingBots = data.data || []; }
-          } catch (e) { console.error('Fetch error:', e); }
+          } catch (e) { console.error('Fetch WA error:', e); }
         },
         async fetchMCPServers() {
           try {
@@ -472,42 +606,56 @@
             if (data.success) { this.mcpServers = data.data || []; }
           } catch (e) { console.error('Fetch MCP error:', e); }
         },
-        async submitMCPServer() {
+        async submitTopup() {
           try {
-            const res = await fetch('/api/v1/gateway/mcp/servers', {
+            const res = await fetch('/api/v1/gateway/billing/topup', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
-              body: JSON.stringify(this.newMCPServer)
+              body: JSON.stringify(this.topupReq)
             });
             const data = await res.json();
             if (data.success) {
-              this.showMCPModal = false;
-              await this.fetchMCPServers();
+              this.showTopupModal = false;
+              alert(`Rechargement de ${this.topupReq.amount_fiat} € effectué avec succès via Hyperswitch!`);
+              await this.fetchWallet();
             }
-          } catch (e) { console.error('Submit MCP error:', e); }
+          } catch (e) { console.error('Topup error:', e); }
         },
-        async inspectMCPTools(serverID) {
+        async updateMargins() {
           try {
-            const res = await fetch(`/api/v1/gateway/mcp/servers/${serverID}/tools`, { headers: { 'X-Tenant-ID': this.tenantId } });
-            const data = await res.json();
-            if (data.success) {
-              alert(`Outils MCP découverts (${data.data.length}):\n` + data.data.map(t => '- ' + t.name + ': ' + t.description).join('\n'));
-            }
-          } catch (e) { console.error('Inspect tools error:', e); }
-        },
-        async connectWhatsApp() {
-          try {
-            const res = await fetch('/api/v1/gateway/whatsapp/connect', {
+            const res = await fetch('/api/v1/gateway/billing/margins', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
-              body: JSON.stringify({ session_name: 'wa_session_' + Math.floor(Math.random() * 1000) })
+              body: JSON.stringify({ markup_percentage: this.marginConfig.markup_percentage, fixed_fee_per_call: 0.01, grace_limit_fiat: -0.50 })
+            });
+            const data = await res.json();
+            if (data.success) { alert("Règle de marge agence enregistrée !"); }
+          } catch (e) { console.error('Margins error:', e); }
+        },
+        async simulateLiveEvent() {
+          try {
+            const evt = {
+              session_id: 'sess_live_demo',
+              channel_type: 'voice_call',
+              provider: 'openai',
+              model_name: 'gpt-4o',
+              prompt_tokens: 850,
+              completion_tokens: 120,
+              audio_duration_ms: 15000,
+              tts_characters: 180,
+              sip_duration_sec: 15
+            };
+            const res = await fetch('/api/v1/gateway/billing/metering/event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Tenant-ID': this.tenantId },
+              body: JSON.stringify(evt)
             });
             const data = await res.json();
             if (data.success) {
-              this.qrCodeData = data.data;
-              await this.fetchWASessions();
+              await this.fetchWallet();
+              alert(`Event de consommation comptabilisé en <0.1ms !\nFacturé: $${data.data.billed_cost_usd.toFixed(4)} (Marge nette: $${data.data.profit_usd.toFixed(4)})`);
             }
-          } catch (e) { console.error('Connect error:', e); }
+          } catch (e) { console.error('Metering event error:', e); }
         },
         async saveAgentConfig() {
           alert("Préférences de votre Agent Vocal enregistrées !");

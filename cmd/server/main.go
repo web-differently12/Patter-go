@@ -15,6 +15,8 @@ import (
 
 	_ "github.com/lynxflow/patter-go/docs"
 	avatarCtrl "github.com/lynxflow/patter-go/pkg/avatar"
+	"github.com/lynxflow/patter-go/pkg/billing"
+	billingCtrl "github.com/lynxflow/patter-go/pkg/billing/controller"
 	brainCtrl "github.com/lynxflow/patter-go/pkg/brain/controller"
 	brainSvc "github.com/lynxflow/patter-go/pkg/brain/service"
 	campaignCtrl "github.com/lynxflow/patter-go/pkg/campaign/controller"
@@ -66,6 +68,13 @@ func main() {
 	meetingEngineSvc := rtc.NewMeetingEngineService(os.Getenv("PATTER_MEETING_ENGINE_KEY"), logger)
 	sipSvc := sip.NewSIPPBXService(logger)
 	avatarSvc := avatarCtrl.NewAvatarEngineService(os.Getenv("WAVESPEED_API_KEY"), logger)
+	cleanupWorker := core.NewDataRetentionCleanupWorker(logger)
+
+	// Initialize Billing & Usage Metering Services
+	pricingGrid := billing.NewPricingGrid()
+	walletLedger := billing.NewWalletLedgerService(logger)
+	usageMeterSvc := billing.NewUsageMeterService(pricingGrid, walletLedger, logger)
+	hyperswitchLagoSvc := billing.NewHyperswitchLagoService(pricingGrid, walletLedger, logger)
 
 	// Initialize Controllers
 	instController := instanceCtrl.NewInstanceController(instSvc)
@@ -78,12 +87,49 @@ func main() {
 	sipController := sip.NewSIPController(sipSvc)
 	mcpController := mcpCtrl.NewMCPController(mcpSvc)
 	avatarController := avatarCtrl.NewAvatarController(avatarSvc)
+	billingController := billingCtrl.NewBillingController(pricingGrid, usageMeterSvc, walletLedger, hyperswitchLagoSvc)
+
+	// Shortlink Redirect Route (60-day expiry media links)
+	router.GET("/v/:short_id", func(c *gin.Context) {
+		shortID := c.Param("short_id")
+		targetURL, found := avatarSvc.GetShortlinkTarget(shortID)
+		if !found {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Shortlink expired or invalid"})
+			return
+		}
+		c.Redirect(http.StatusFound, targetURL)
+	})
 
 	// API Gateway V1 Routes
 	api := router.Group("/api/v1/gateway")
 	{
+		// Admin Data Retention 60-Day Cleanup Route
+		api.POST("/admin/cleanup", func(c *gin.Context) {
+			var policy core.CleanupPolicyConfig
+			if err := c.ShouldBindJSON(&policy); err != nil {
+				policy.RetentionDays = 60
+			}
+			report, err := cleanupWorker.RunCleanup(c.Request.Context(), policy)
+			if err != nil {
+				core.Error(c, http.StatusInternalServerError, err.Error())
+				return
+			}
+			core.Success(c, report)
+		})
+
 		// Contract-First TypeScript Schema Endpoint
 		api.GET("/schema/typescript", core.ServeTypeScriptSchema)
+
+		// Usage-Based Billing, Wallet, Hyperswitch Topup & Margin Engine
+		api.GET("/billing/wallet", billingController.GetWallet)
+		api.POST("/billing/topup", billingController.InitTopup)
+		api.POST("/billing/auto-reload", billingController.ConfigureAutoReload)
+		api.GET("/billing/margins", billingController.GetMarginsConfig)
+		api.POST("/billing/margins", billingController.UpdateMarginsConfig)
+		api.POST("/billing/metering/event", billingController.IngestMeteringEvent)
+		api.GET("/billing/metering/live", billingController.GetLiveSessionMetering)
+		api.GET("/billing/history", billingController.GetTransactionHistory)
+		api.GET("/billing/admin/provider-costs", billingController.GetAdminProviderCostCatalog)
 
 		// Tenant Direct API Integrations
 		api.GET("/integrations", mcpController.ListActiveIntegrations)
