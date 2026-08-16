@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,13 +56,33 @@ type DeployTemplateResponse struct {
 	DeployedAt    time.Time `json:"deployed_at"`
 }
 
+type ConnectTenantAPIRequest struct {
+	Name        string            `json:"name" binding:"required"` // e.g. "Mon CRM Interne"
+	Provider    string            `json:"provider" binding:"required"` // e.g. "HubSpot", "CustomAPI"
+	AuthType    string            `json:"auth_type"` // "APIKey", "OAuth2"
+	APIKey      string            `json:"api_key,omitempty"`
+	BaseURL     string            `json:"base_url,omitempty"`
+	Headers     map[string]string `json:"headers,omitempty"`
+}
+
+type ActiveTenantIntegration struct {
+	IntegrationID string            `json:"integration_id"`
+	TenantID      string            `json:"tenant_id"`
+	Name          string            `json:"name"`
+	Provider      string            `json:"provider"`
+	Status        string            `json:"status"` // "CONNECTED", "DISCONNECTED"
+	ServerID      string            `json:"server_id"`
+	CreatedAt     time.Time         `json:"created_at"`
+}
+
 type TenantIntegrationHub struct {
-	mcpService MCPService
-	templates  []IntegrationTemplate
+	mu          sync.RWMutex
+	mcpService  MCPService
+	templates   []IntegrationTemplate
+	activeInts  map[string]*ActiveTenantIntegration
 }
 
 func NewTenantIntegrationHub(mcpSvc MCPService) *TenantIntegrationHub {
-	// Template catalog inspired by NangoHQ/integration-templates
 	templates := []IntegrationTemplate{
 		{
 			TemplateID:    "tpl_hubspot_crm_sync",
@@ -108,6 +129,7 @@ func NewTenantIntegrationHub(mcpSvc MCPService) *TenantIntegrationHub {
 	return &TenantIntegrationHub{
 		mcpService: mcpSvc,
 		templates:  templates,
+		activeInts: make(map[string]*ActiveTenantIntegration),
 	}
 }
 
@@ -115,11 +137,71 @@ func (h *TenantIntegrationHub) ListTemplates() []IntegrationTemplate {
 	return h.templates
 }
 
+func (h *TenantIntegrationHub) ConnectTenantAPIIntegration(ctx context.Context, tenantID string, req ConnectTenantAPIRequest) (*ActiveTenantIntegration, error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	integrationID := "int_api_" + uuid.New().String()[:8]
+	serverID := "mcp_srv_" + uuid.New().String()[:8]
+
+	headers := req.Headers
+	if headers == nil {
+		headers = make(map[string]string)
+	}
+	if req.APIKey != "" {
+		headers["Authorization"] = "Bearer " + req.APIKey
+	}
+
+	baseURL := req.BaseURL
+	if baseURL == "" {
+		baseURL = "https://api.patter.ai/v1/bridge/api/" + integrationID
+	}
+
+	_, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
+		ServerID:            serverID,
+		TenantID:            tenantID,
+		Name:                req.Name,
+		URL:                 baseURL,
+		Transport:           TransportPatterBridge,
+		PatterIntegrationID: integrationID,
+		AuthHeader:          headers,
+		Status:              "CONNECTED",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	active := &ActiveTenantIntegration{
+		IntegrationID: integrationID,
+		TenantID:      tenantID,
+		Name:          req.Name,
+		Provider:      req.Provider,
+		Status:        "CONNECTED",
+		ServerID:      serverID,
+		CreatedAt:     time.Now(),
+	}
+
+	h.activeInts[tenantID+":"+integrationID] = active
+	return active, nil
+}
+
+func (h *TenantIntegrationHub) ListActiveTenantIntegrations(ctx context.Context, tenantID string) ([]*ActiveTenantIntegration, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	var result []*ActiveTenantIntegration
+	for _, item := range h.activeInts {
+		if item.TenantID == tenantID {
+			result = append(result, item)
+		}
+	}
+	return result, nil
+}
+
 func (h *TenantIntegrationHub) DeployTemplate(ctx context.Context, tenantID string, req DeployTemplateRequest) (*DeployTemplateResponse, error) {
 	integrationID := "int_" + uuid.New().String()[:8]
 	serverID := "mcp_tpl_" + uuid.New().String()[:8]
 
-	// Automatically register under MCP server bridge
 	_, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
 		ServerID:            serverID,
 		TenantID:            tenantID,

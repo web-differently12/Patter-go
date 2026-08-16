@@ -19,6 +19,51 @@ func NewMCPController(svc MCPService) *MCPController {
 	}
 }
 
+// ConnectTenantAPI godoc
+// @Summary      Connecter une API externe / Clé API directement pour le Tenant (/integrations/connect)
+// @Description  Permet au Tenant de connecter sa clé API ou son endpoint personnalisé (HubSpot, Salesforce, Custom CRM) qui sera automatiquement exposé sous forme d'outil MCP
+// @Tags         Gateway - Model Context Protocol (MCP)
+// @Accept       json
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Param        request body ConnectTenantAPIRequest true "Information d'intégration API Tenant"
+// @Success      200 {object} core.APIResponse{data=ActiveTenantIntegration}
+// @Router       /api/v1/gateway/integrations/connect [post]
+func (ctrl *MCPController) ConnectTenantAPI(c *gin.Context) {
+	var req ConnectTenantAPIRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.hub.ConnectTenantAPIIntegration(c.Request.Context(), tenantID, req)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
+// ListActiveIntegrations godoc
+// @Summary      Lister les intégrations API actives du Tenant (/integrations)
+// @Tags         Gateway - Model Context Protocol (MCP)
+// @Produce      json
+// @Param        X-Tenant-ID header string true "ID du Tenant White-Label"
+// @Success      200 {object} core.APIResponse{data=[]ActiveTenantIntegration}
+// @Router       /api/v1/gateway/integrations [get]
+func (ctrl *MCPController) ListActiveIntegrations(c *gin.Context) {
+	tenantID := core.GetTenantID(c)
+	resp, err := ctrl.hub.ListActiveTenantIntegrations(c.Request.Context(), tenantID)
+	if err != nil {
+		core.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	core.Success(c, resp)
+}
+
 // ListTemplates godoc
 // @Summary      Lister le catalogue des modèles d'intégration (Nango Template Catalogue)
 // @Tags         Gateway - Model Context Protocol (MCP)

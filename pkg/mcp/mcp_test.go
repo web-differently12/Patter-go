@@ -88,3 +88,31 @@ func TestIntegrationTemplates(t *testing.T) {
 		t.Errorf("Expected valid IntegrationID and ServerID")
 	}
 }
+
+func TestConnectTenantAPIIntegration(t *testing.T) {
+	svc := mcp.NewMCPService(nil)
+	hub := mcp.NewTenantIntegrationHub(svc)
+
+	active, err := hub.ConnectTenantAPIIntegration(context.Background(), "tenant_test", mcp.ConnectTenantAPIRequest{
+		Name:     "Mon CRM Interne Custom",
+		Provider: "CustomCRM",
+		AuthType: "APIKey",
+		APIKey:   "secret_key_12345",
+	})
+
+	if err != nil {
+		t.Fatalf("Unexpected error connecting tenant API integration: %v", err)
+	}
+
+	if active.IntegrationID == "" || active.Status != "CONNECTED" {
+		t.Errorf("Expected active connected integration")
+	}
+
+	list, err := hub.ListActiveTenantIntegrations(context.Background(), "tenant_test")
+	if err != nil {
+		t.Fatalf("Unexpected error listing active integrations: %v", err)
+	}
+	if len(list) != 1 {
+		t.Errorf("Expected 1 active integration, got %d", len(list))
+	}
+}

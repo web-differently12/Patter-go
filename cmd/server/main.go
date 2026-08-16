@@ -85,6 +85,10 @@ func main() {
 		// Contract-First TypeScript Schema Endpoint
 		api.GET("/schema/typescript", core.ServeTypeScriptSchema)
 
+		// Tenant Direct API Integrations
+		api.GET("/integrations", mcpController.ListActiveIntegrations)
+		api.POST("/integrations/connect", mcpController.ConnectTenantAPI)
+
 		// Integration Templates & n8n / Make.com Community Node 1-Click Schema Endpoint
 		api.GET("/integrations/templates", mcpController.ListTemplates)
 		api.POST("/integrations/templates/deploy", mcpController.DeployTemplate)
