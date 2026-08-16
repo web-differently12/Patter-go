@@ -142,7 +142,6 @@ func (h *TenantIntegrationHub) ConnectTenantAPIIntegration(ctx context.Context, 
 	defer h.mu.Unlock()
 
 	integrationID := "int_api_" + uuid.New().String()[:8]
-	serverID := "mcp_srv_" + uuid.New().String()[:8]
 
 	headers := req.Headers
 	if headers == nil {
@@ -157,8 +156,7 @@ func (h *TenantIntegrationHub) ConnectTenantAPIIntegration(ctx context.Context, 
 		baseURL = "https://api.patter.ai/v1/bridge/api/" + integrationID
 	}
 
-	_, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
-		ServerID:            serverID,
+	regServer, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
 		TenantID:            tenantID,
 		Name:                req.Name,
 		URL:                 baseURL,
@@ -177,7 +175,7 @@ func (h *TenantIntegrationHub) ConnectTenantAPIIntegration(ctx context.Context, 
 		Name:          req.Name,
 		Provider:      req.Provider,
 		Status:        "CONNECTED",
-		ServerID:      serverID,
+		ServerID:      regServer.ServerID,
 		CreatedAt:     time.Now(),
 	}
 
@@ -200,10 +198,8 @@ func (h *TenantIntegrationHub) ListActiveTenantIntegrations(ctx context.Context,
 
 func (h *TenantIntegrationHub) DeployTemplate(ctx context.Context, tenantID string, req DeployTemplateRequest) (*DeployTemplateResponse, error) {
 	integrationID := "int_" + uuid.New().String()[:8]
-	serverID := "mcp_tpl_" + uuid.New().String()[:8]
 
-	_, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
-		ServerID:            serverID,
+	regServer, err := h.mcpService.RegisterServer(ctx, tenantID, MCPServerConfig{
 		TenantID:            tenantID,
 		Name:                req.CustomName,
 		URL:                 "https://api.patter.ai/v1/bridge/template/" + req.TemplateID,
@@ -217,7 +213,7 @@ func (h *TenantIntegrationHub) DeployTemplate(ctx context.Context, tenantID stri
 
 	return &DeployTemplateResponse{
 		IntegrationID: integrationID,
-		ServerID:      serverID,
+		ServerID:      regServer.ServerID,
 		Status:        "ACTIVE",
 		OAuthURL:      fmt.Sprintf("https://auth.patter.ai/v1/oauth/connect/%s?tenant_id=%s", req.TemplateID, tenantID),
 		DeployedAt:    time.Now(),
