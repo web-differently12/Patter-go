@@ -1,5 +1,35 @@
 export type UserRole = 'super_admin' | 'agency' | 'tenant_enterprise';
 
+export interface AgencyPlan {
+  id: string;
+  name: string;
+  maxSubTenants: number;
+  whiteLabelEnabled: boolean;
+  customAppAllowed: boolean;
+  markupPercent: number;
+}
+
+export interface StripePlan {
+  id: string;
+  name: string;
+  priceEUR: number;
+  billingInterval: 'month' | 'year';
+  stripePriceId: string;
+  includedMinutes: number;
+  includedTokens: number;
+}
+
+export interface TenantSubscription {
+  tenantId: string;
+  planId: string;
+  planName: string;
+  status: 'active' | 'past_due' | 'canceled';
+  currentPeriodEnd: string;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  isAgencyPlan: boolean;
+}
+
 export type IntegrationMode = 'managed' | 'custom_app';
 
 export type ProviderId =

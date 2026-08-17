@@ -44,10 +44,10 @@ export const LiveMeteringPanel: React.FC = () => {
       <div className="flex justify-between items-center border-b border-zinc-800/60 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold tracking-tight text-zinc-100">Live Metering — KallFlow Engine</h3>
+            <h3 className="text-sm font-semibold tracking-tight text-zinc-100">Live Metering - KallFlow Engine</h3>
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-0.5">Télémétrie en direct des micro-transactions LLM, STT, TTS et Téléphonie SIP.</p>
+          <p className="text-[11px] text-zinc-400 mt-0.5">Telemetrie en direct des micro-transactions LLM, STT, TTS et Telephonie SIP.</p>
         </div>
 
         {/* Outline Simulation Debug Button */}
@@ -56,7 +56,7 @@ export const LiveMeteringPanel: React.FC = () => {
           disabled={simulating}
           className="border border-zinc-700/80 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-300 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
         >
-          <span>{simulating ? '⚡ Envoi...' : '⚡ Simuler Trafic'}</span>
+          <span>{simulating ? 'Envoi...' : 'Simuler Trafic'}</span>
         </button>
       </div>
 
@@ -93,7 +93,7 @@ export const LiveMeteringPanel: React.FC = () => {
         {/* Column 3: TTS Text-to-Speech */}
         <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
           <div className="flex justify-between items-center text-zinc-400 font-medium">
-            <span>TTS Synthèse</span>
+            <span>TTS Synthese</span>
             <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">ElevenLabs</span>
           </div>
           <div className="text-base font-semibold text-zinc-100 font-mono">
@@ -114,7 +114,7 @@ export const LiveMeteringPanel: React.FC = () => {
             {formattedSipSeconds}s
           </div>
           <div className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
-            <span>●</span> {telemetry.activeCallsCount} appels actifs
+            <span>[Active]</span> {telemetry.activeCallsCount} appels actifs
           </div>
         </div>
       </div>

@@ -43,7 +43,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
       await onConnectManaged();
       onClose();
     } catch (e: any) {
-      setError(e?.message || 'Échec de la connexion OAuth KallFlow Managed.');
+      setError(e?.message || 'Echec de la connexion OAuth KallFlow Managed.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
       });
       onClose();
     } catch (e: any) {
-      setError(e?.message || 'Erreur lors de la configuration de votre application privée.');
+      setError(e?.message || 'Erreur lors de la configuration de votre application privee.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
         {/* Header */}
         <div className="p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{provider.icon}</span>
+            <span className="text-xs font-mono px-2 py-1 bg-zinc-800 rounded text-zinc-300">[{provider.id.toUpperCase()}]</span>
             <div>
               <h2 className="text-lg font-bold text-white">Connecter {provider.name}</h2>
               <p className="text-xs text-slate-400">{provider.description}</p>
@@ -101,7 +101,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                 : 'text-slate-400 hover:text-white hover:bg-zinc-900'
             }`}
           >
-            <span>⚡ KallFlow Managed</span>
+            <span>KallFlow Managed</span>
             <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-bold">1-Click</span>
           </button>
 
@@ -113,7 +113,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                 : 'text-slate-400 hover:text-white hover:bg-zinc-900'
             }`}
           >
-            <span>🔒 Application Privée (BYO-App)</span>
+            <span>Application Privée (BYO-App)</span>
             <span className="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.5 rounded font-bold">Marque Blanche</span>
           </button>
         </div>
@@ -122,7 +122,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-5 text-xs">
           {error && (
             <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs">
-              ⚠️ {error}
+              [Erreur] {error}
             </div>
           )}
 
@@ -130,11 +130,11 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
             <div className="space-y-4">
               <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2">
                 <div className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                  <span className="text-emerald-400">✓</span> Connexion Simplifiée Sécurisée
+                  <span className="text-emerald-400">[Valide]</span> Connexion Simplifiee Securisee
                 </div>
                 <p className="text-slate-400 leading-relaxed">
-                  Connectez directement votre compte {provider.name} via l'application globale vérifiée de KallFlow.
-                  Aucune création de compte développeur requise. Les jetons sont chiffrés et isolés sous votre <code className="text-cyan-400">tenant_id</code>.
+                  Connectez directement votre compte {provider.name} via l'application globale verifiee de KallFlow.
+                  Aucune creation de compte developpeur requise. Les jetons sont chiffres et isoles sous votre <code className="text-cyan-400">tenant_id</code>.
                 </p>
               </div>
 
@@ -150,7 +150,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                   disabled={loading}
                   className="px-5 py-2.5 rounded-xl font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
-                  {loading ? 'Connexion en cours...' : `Connecter mon compte ${provider.name} →`}
+                  {loading ? 'Connexion en cours...' : `Connecter mon compte ${provider.name}`}
                 </button>
               </div>
             </div>
@@ -165,7 +165,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                     onClick={handleCopyCallback}
                     className="text-[11px] bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-500/40 transition-colors"
                   >
-                    {copied ? '✓ Copié !' : 'Copier l\'URL'}
+                    {copied ? 'Copie !' : 'Copier URL'}
                   </button>
                 </div>
                 <code className="block bg-zinc-950 p-2 rounded text-[11px] text-slate-300 font-mono overflow-x-auto border border-zinc-800">
@@ -180,15 +180,15 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                   onClick={() => setShowGuide(!showGuide)}
                   className="w-full p-3 text-left font-semibold text-slate-300 flex justify-between items-center hover:bg-zinc-900/60 transition-colors"
                 >
-                  <span>📖 Guide pas-à-pas Console Développeur {provider.name}</span>
-                  <span>{showGuide ? '▲' : '▼'}</span>
+                  <span>Guide pas-a-pas Console Developpeur {provider.name}</span>
+                  <span>{showGuide ? '[-]' : '[+]'}</span>
                 </button>
                 {showGuide && (
                   <div className="p-4 border-t border-zinc-800 text-slate-400 space-y-2 bg-zinc-950/60 leading-relaxed">
                     <ol className="list-decimal list-inside space-y-1">
-                      <li>Rendez-vous sur la <a href={provider.developerConsoleUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">Console Développeur {provider.name}</a>.</li>
-                      <li>Créez une nouvelle Application ou sélectionnez votre App existante.</li>
-                      <li>Dans les paramètres OAuth, coller l'URL de redirection ci-dessus.</li>
+                      <li>Rendez-vous sur la <a href={provider.developerConsoleUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">Console Developpeur {provider.name}</a>.</li>
+                      <li>Creez une nouvelle Application ou selectionnez votre App existante.</li>
+                      <li>Dans les parametres OAuth, coller l'URL de redirection ci-dessus.</li>
                       <li>Copiez le <strong>Client ID / App ID</strong> et le <strong>Client Secret</strong> ci-dessous.</li>
                     </ol>
                   </div>
@@ -254,7 +254,7 @@ export const ProviderConnectModal: React.FC<ProviderConnectModalProps> = ({
                   disabled={loading}
                   className="px-5 py-2.5 rounded-xl font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
-                  {loading ? 'Enregistrement...' : 'Enregistrer et Connecter mon App →'}
+                  {loading ? 'Enregistrement...' : 'Enregistrer et Connecter mon App'}
                 </button>
               </div>
             </form>

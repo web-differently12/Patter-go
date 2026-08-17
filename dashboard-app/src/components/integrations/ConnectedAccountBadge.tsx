@@ -56,7 +56,7 @@ export const ConnectedAccountBadge: React.FC<ConnectedAccountBadgeProps> = ({
     <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-lg space-y-3 font-sans text-xs">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-white overflow-hidden text-sm border border-zinc-700">
+          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-white overflow-hidden text-sm border border-zinc-700 font-mono">
             {account.accountAvatar ? (
               <img src={account.accountAvatar} alt={account.accountName} className="w-full h-full object-cover" />
             ) : (
@@ -66,7 +66,7 @@ export const ConnectedAccountBadge: React.FC<ConnectedAccountBadgeProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm">{account.accountName}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Actif 🟢"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Actif"></span>
             </div>
             {account.email && <div className="text-slate-400 text-[11px]">{account.email}</div>}
           </div>
@@ -80,7 +80,7 @@ export const ConnectedAccountBadge: React.FC<ConnectedAccountBadgeProps> = ({
               : 'bg-violet-950/80 text-violet-300 border-violet-800/80'
           }`}
         >
-          {account.isCustomApp ? '🔒 Application Privée (BYO-App)' : '⚡ KallFlow Managed'}
+          {account.isCustomApp ? 'Application Privee (BYO-App)' : 'KallFlow Managed'}
         </span>
       </div>
 
@@ -88,7 +88,7 @@ export const ConnectedAccountBadge: React.FC<ConnectedAccountBadgeProps> = ({
         <div className={`p-2 rounded-lg text-[11px] font-semibold border ${
           testSuccess ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
         }`}>
-          {testSuccess ? '✓ Test de connexion réussi ! Token valide.' : '✕ Erreur lors du test de connexion.'}
+          {testSuccess ? 'Test de connexion reussi ! Token valide.' : 'Erreur lors du test de connexion.'}
         </div>
       )}
 
@@ -118,7 +118,7 @@ export const ConnectedAccountBadge: React.FC<ConnectedAccountBadgeProps> = ({
             disabled={disconnecting}
             className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-colors disabled:opacity-50"
           >
-            {disconnecting ? 'Suppression...' : 'Déconnecter'}
+            {disconnecting ? 'Suppression...' : 'Deconnecter'}
           </button>
         </div>
       </div>

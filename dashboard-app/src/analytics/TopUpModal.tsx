@@ -19,7 +19,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
 
   if (!isOpen) return null;
 
-  const symbol = currency === 'EUR' ? '€' : '$';
+  const symbol = currency === 'EUR' ? 'EUR' : 'USD';
 
   const handleTopUp = async () => {
     setLoading(true);
@@ -38,7 +38,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
         <div className="flex justify-between items-center border-b border-zinc-800/80 pb-4">
           <div>
             <h2 className="text-base font-semibold text-zinc-100">Recharger le Wallet KallFlow</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Paiement instantané sécurisé par Hyperswitch.</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Paiement instantane securise par Hyperswitch.</p>
           </div>
           <button onClick={onClose} className="text-zinc-400 hover:text-zinc-100 text-sm p-1 rounded-lg">✕</button>
         </div>
@@ -66,7 +66,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
 
         {/* Payment Method Selector */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-zinc-400">Méthode de Paiement (Hyperswitch)</label>
+          <label className="text-xs font-medium text-zinc-400">Methode de Paiement (Hyperswitch)</label>
           <div className="space-y-2">
             <button
               type="button"
@@ -76,7 +76,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-2">
-                <span>💳</span>
+                <span className="font-mono text-zinc-[500]">[CB]</span>
                 <span className="font-medium text-zinc-200">Carte Bancaire (Visa / Mastercard)</span>
               </div>
               <span className="text-[10px] text-emerald-400 font-mono">Instant</span>
@@ -90,8 +90,8 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-2">
-                <span>🏦</span>
-                <span className="font-medium text-zinc-200">Prélèvement SEPA Direct</span>
+                <span className="font-mono text-zinc-[500]">[SEPA]</span>
+                <span className="font-medium text-zinc-200">Prelevement SEPA Direct</span>
               </div>
               <span className="text-[10px] text-zinc-500 font-mono">24h - 48h</span>
             </button>
@@ -104,7 +104,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
               }`}
             >
               <div className="flex items-center gap-2">
-                <span>⚡</span>
+                <span className="font-mono text-zinc-[500]">[BTC]</span>
                 <span className="font-medium text-zinc-200">Bitcoin Lightning (OpenNode / LND)</span>
               </div>
               <span className="text-[10px] text-amber-400 font-mono">0.1s Sats</span>
@@ -127,7 +127,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             disabled={loading}
             className="bg-white hover:bg-zinc-200 text-zinc-950 font-medium text-xs px-4 py-2 rounded-lg transition-colors shadow-sm disabled:opacity-50"
           >
-            {loading ? 'Paiement...' : `Payer ${selectedAmount} ${symbol} →`}
+            {loading ? 'Paiement...' : `Payer ${selectedAmount} ${symbol}`}
           </button>
         </div>
       </div>
