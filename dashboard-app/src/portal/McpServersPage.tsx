@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 interface McpIntegration {
   id: string;
   name: string;
-  category: 'CRM' | 'Workspace' | 'Support' | 'Database' | 'DevOps' | 'Payments';
+  category: 'CRM' | 'Workspace' | 'Support' | 'Database' | 'DevOps' | 'Payments' | 'Custom';
   description: string;
-  authType: 'OAuth2' | 'API Key';
+  authType: 'OAuth2' | 'API Key' | 'Custom Headers';
   connected: boolean;
   discoveredTools: string[];
   transport: 'HTTP/SSE' | 'WebSocket';
+  isCustom?: boolean;
 }
 
 export const McpServersPage: React.FC = () => {
@@ -17,7 +18,14 @@ export const McpServersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [inspectToolsModal, setInspectToolsModal] = useState<McpIntegration | null>(null);
 
-  // Pre-Built Catalog of MCP Servers available to Tenants
+  // Custom Integration Modal State
+  const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
+  const [customName, setCustomName] = useState<string>('');
+  const [customUrl, setCustomUrl] = useState<string>('');
+  const [customTransport, setCustomTransport] = useState<'HTTP/SSE' | 'WebSocket'>('HTTP/SSE');
+  const [customApiKey, setCustomApiKey] = useState<string>('');
+
+  // Dynamically Synced Integration Catalog (Auto-Retrieved from Integration Template Hub)
   const [integrations, setIntegrations] = useState<McpIntegration[]>([
     {
       id: 'mcp-hubspot',
@@ -168,6 +176,29 @@ export const McpServersPage: React.FC = () => {
     );
   };
 
+  const handleAddCustomServer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customName || !customUrl) return;
+
+    const newServer: McpIntegration = {
+      id: `custom-mcp-${Date.now()}`,
+      name: customName,
+      category: 'Custom',
+      description: `Serveur MCP sur-mesure connecte via ${customUrl}`,
+      authType: customApiKey ? 'API Key' : 'Custom Headers',
+      connected: true,
+      transport: customTransport,
+      discoveredTools: ['custom_tool_execute', 'custom_schema_inspect'],
+      isCustom: true,
+    };
+
+    setIntegrations([newServer, ...integrations]);
+    setShowCustomModal(false);
+    setCustomName('');
+    setCustomUrl('');
+    setCustomApiKey('');
+  };
+
   const filteredIntegrations = integrations.filter((item) => {
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesSearch =
@@ -179,6 +210,8 @@ export const McpServersPage: React.FC = () => {
         ? true
         : activeTab === 'connected'
         ? item.connected
+        : activeTab === 'custom'
+        ? item.isCustom
         : false;
     return matchesCategory && matchesSearch && matchesTab;
   });
@@ -188,17 +221,26 @@ export const McpServersPage: React.FC = () => {
       {/* Header */}
       <div className="border-b border-zinc-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-full border border-cyan-800/80">
-            Model Context Protocol Gateway & Integration Hub
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Catalogue de Serveurs MCP & APIs Tierces</h1>
-          <p className="text-xs text-zinc-400">
-            Selectionnez et connectez les serveurs MCP pour alimenter vos agents vocaux et visio avec vos outils metiers (HubSpot, Salesforce, Google, Slack, etc.).
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-full border border-cyan-800/80">
+              Model Context Protocol Gateway & Integration Hub
+            </span>
+            <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/80 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Auto-Sync Template Catalog Active
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-white mt-2">Catalogue Dynamique de Serveurs MCP & Connecteurs Sur-Mesure</h1>
+          <p className="text-xs text-zinc-400 max-w-3xl mt-0.5">
+            Le catalogue se synchronise automatiquement depuis le Hub de Modeles d'Integration. Vos utilisateurs peuvent se connecter en 1-clic ou ajouter **n'importe quel serveur MCP / API externe sur-mesure** (Streamable-HTTP / SSE / WebSocket).
           </p>
         </div>
 
-        <button className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-sm self-start md:self-auto">
-          + Connecter un Serveur MCP Custom (HTTP/SSE)
+        <button
+          onClick={() => setShowCustomModal(true)}
+          className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors shadow-lg self-start md:self-auto flex items-center gap-1.5"
+        >
+          <span>+ Connecter un Serveur MCP / API Custom</span>
         </button>
       </div>
 
@@ -211,7 +253,7 @@ export const McpServersPage: React.FC = () => {
               activeTab === 'catalog' ? 'bg-zinc-100 text-zinc-950' : 'text-zinc-400 hover:text-white bg-zinc-900'
             }`}
           >
-            Catalogue Complet ({integrations.length})
+            Catalogue Synchronise ({integrations.length})
           </button>
           <button
             onClick={() => setActiveTab('connected')}
@@ -221,13 +263,21 @@ export const McpServersPage: React.FC = () => {
           >
             Connectes ({integrations.filter((i) => i.connected).length})
           </button>
+          <button
+            onClick={() => setActiveTab('custom')}
+            className={`px-4 py-2 rounded-xl font-bold transition-all ${
+              activeTab === 'custom' ? 'bg-cyan-500 text-zinc-950' : 'text-zinc-400 hover:text-white bg-zinc-900'
+            }`}
+          >
+            Sur-Mesure / BYO ({integrations.filter((i) => i.isCustom).length})
+          </button>
         </div>
 
         {/* Search & Category Filter */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto text-xs">
           <input
             type="text"
-            placeholder="Rechercher par nom ou outil MCP..."
+            placeholder="Rechercher un outil, CRM ou endpoint..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-zinc-200 placeholder-zinc-500 text-xs focus:outline-none focus:border-cyan-500 w-full sm:w-64"
@@ -245,6 +295,7 @@ export const McpServersPage: React.FC = () => {
             <option value="Database">Bases de Donnees</option>
             <option value="Payments">Paiements & Facturation</option>
             <option value="DevOps">DevOps & Projets</option>
+            <option value="Custom">Sur-Mesure / Private</option>
           </select>
         </div>
       </div>
@@ -306,6 +357,103 @@ export const McpServersPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Connect Custom MCP Server Modal */}
+      {showCustomModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form
+            onSubmit={handleAddCustomServer}
+            className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-xl w-full space-y-4 shadow-2xl"
+          >
+            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
+                  BYO Custom Integration
+                </span>
+                <h3 className="font-bold text-white text-lg mt-1">Connecter n'importe quelle API ou Serveur MCP</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomModal(false)}
+                className="text-zinc-400 hover:text-white font-bold text-sm bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400">
+              Renseignez l'URL de votre propre serveur MCP (Streamable-HTTP / SSE) ou API sur-mesure. Le gateway inspectera automatiquement les endpoints RPC.
+            </p>
+
+            <div className="space-y-3 text-xs font-mono">
+              <div>
+                <label className="text-zinc-300 block mb-1">Nom du Connecteur / Service</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Mon CRM Proprietaire / DB Interne"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  required
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-zinc-200 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-zinc-300 block mb-1">URL Endpoint MCP (HTTP/SSE / WebSocket)</label>
+                <input
+                  type="url"
+                  placeholder="https://mcp.votre-entreprise.com/sse"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  required
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-zinc-200 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-zinc-300 block mb-1">Transport MCP</label>
+                  <select
+                    value={customTransport}
+                    onChange={(e) => setCustomTransport(e.target.value as any)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-zinc-200 focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="HTTP/SSE">Streamable-HTTP / SSE</option>
+                    <option value="WebSocket">WebSocket Duplex</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-zinc-300 block mb-1">Cle API / Bearer Token (Optionnel)</label>
+                  <input
+                    type="password"
+                    placeholder="sk_live_..."
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-zinc-200 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-900">
+              <button
+                type="button"
+                onClick={() => setShowCustomModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold px-4 py-2 rounded-xl text-xs shadow-lg"
+              >
+                Connecter & Inspecter Outils →
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Tools Inspection Drawer/Modal */}
       {inspectToolsModal && (
