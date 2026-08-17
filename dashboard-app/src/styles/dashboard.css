@@ -219,7 +219,7 @@ body.dark .bulk-btn.destructive{background:var(--peach);color:#000;border-color:
 .car-dot.tx,.swatch.tx{background:#00C896}
 .car-dot.pl,.swatch.pl{background:#8B5CF6}
 .lat-bar{display:inline-block;width:54px;height:5px;background:#eee;border-radius:999px;overflow:hidden;vertical-align:middle;margin-right:8px}
-.lat-bar i{display:block;height:100%;background:#000;border-radius:999px;transition:width 400ms var(--easing)}
+.lat-bar i{display:block;height:100%;background:#000;border-radius:999px;transition:transform 400ms var(--easing);transform-origin:left;width:100%}
 .lat-bar.warn i{background:#DF9367}
 .dir{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px}
 .dir svg{flex-shrink:0}
