@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { BillingHeader } from './BillingHeader';
 import { WalletOverviewCards } from './WalletOverviewCards';
 import { LiveMeteringPanel } from './LiveMeteringPanel';
+import { QuotasOverviewPanel } from './QuotasOverviewPanel';
 import { TopUpModal } from './TopUpModal';
-import type { StripePlan, TenantSubscription, UserRole, AgencyPlan } from '../components/integrations/types';
+import type { StripePlan, TenantSubscription, UserRole, AgencyPlan, TenantQuotas, CreditPack } from '../components/integrations/types';
 
 export interface AgentCostBreakdown {
   agentName: string;
@@ -12,11 +13,18 @@ export interface AgentCostBreakdown {
   costEUR: number;
 }
 
+export const CREDIT_PACKS: CreditPack[] = [
+  { id: 'pack_25k', name: 'Pack Starter Credits', credits: 25000, priceEUR: 25, stripePriceId: 'price_pack_25k' },
+  { id: 'pack_50k', name: 'Pack Pro Credits', credits: 50000, priceEUR: 50, stripePriceId: 'price_pack_50k' },
+  { id: 'pack_120k', name: 'Pack Enterprise Credits (Bonus +20%)', credits: 120000, priceEUR: 100, stripePriceId: 'price_pack_120k' },
+];
+
 export const BillingPage: React.FC = () => {
   const [currentRole, setRole] = useState<UserRole>('agency');
   const [currency, setCurrency] = useState<'EUR' | 'USD'>('EUR');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [balanceEUR, setBalanceEUR] = useState<number>(1248.50);
+  const [autoReload, setAutoReload] = useState<boolean>(true);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const [stripePlans, setStripePlans] = useState<StripePlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -26,7 +34,6 @@ export const BillingPage: React.FC = () => {
     const fetchStripePlans = async () => {
       setPlansLoading(true);
       try {
-        // Fetch from Stripe API endpoint /api/v1/stripe/plans
         const fetchedPlans: StripePlan[] = [
           {
             id: 'plan_starter',
@@ -40,18 +47,18 @@ export const BillingPage: React.FC = () => {
           {
             id: 'plan_agency',
             name: 'Agency White-Label Plan',
-            priceEUR: 299,
+            priceEUR: 149,
             billingInterval: 'month',
-            stripePriceId: 'price_agency_monthly_299',
+            stripePriceId: 'price_agency_monthly_149',
             includedMinutes: 5000,
             includedTokens: 1000000,
           },
           {
             id: 'plan_enterprise',
             name: 'Enterprise Custom Plan',
-            priceEUR: 899,
+            priceEUR: 499,
             billingInterval: 'month',
-            stripePriceId: 'price_enterprise_monthly_899',
+            stripePriceId: 'price_enterprise_monthly_499',
             includedMinutes: 20000,
             includedTokens: 5000000,
           },
@@ -75,6 +82,19 @@ export const BillingPage: React.FC = () => {
     isAgencyPlan: true,
   });
 
+  const [quotas] = useState<TenantQuotas>({
+    tenantId: 'tenant_alpha_01',
+    stripeSubscriptionId: 'sub_1O92kX829a1',
+    planTier: 'agency',
+    whatsappMessagesUsedMonth: 4210,
+    whatsappMessagesLimitMonth: 15000,
+    whatsappSessionsActive: 3,
+    whatsappSessionsLimit: 5,
+    mcpActiveClients: 2,
+    mcpClientsLimit: 5,
+    billingCycleResetAt: new Date(Date.now() + 28 * 86400000).toISOString(),
+  });
+
   const agencyPlan: AgencyPlan = {
     id: 'ag_plan_scale',
     name: 'Agence White-Label Scale',
@@ -94,6 +114,11 @@ export const BillingPage: React.FC = () => {
     setBalanceEUR((prev) => prev + amount);
   };
 
+  const handleBuyCreditPack = (pack: CreditPack) => {
+    setBalanceEUR((prev) => prev + pack.priceEUR);
+  };
+
+  const creditsBalance = Math.round(balanceEUR * 1000);
   const symbol = currency === 'EUR' ? 'EUR' : 'USD';
 
   return (
@@ -136,7 +161,7 @@ export const BillingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Header with FIXED onOpenTopUp handler */}
+      {/* Billing Header */}
       <BillingHeader
         currency={currency}
         setCurrency={setCurrency}
@@ -144,6 +169,64 @@ export const BillingPage: React.FC = () => {
         setTheme={setTheme}
         onOpenTopUp={() => setIsTopUpOpen(true)}
       />
+
+      {/* Main Headline Credits Wallet Card */}
+      <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800/80 rounded-xl p-6 hover:border-zinc-700/80 transition-all duration-150 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800/60 pb-4">
+          <div>
+            <span className="text-xs font-medium text-zinc-400">Solde de Credits KallFlow (Métrique Principale)</span>
+            <div className="text-3xl font-bold tracking-tight text-zinc-100 font-mono mt-1">
+              {creditsBalance.toLocaleString()} Credits
+            </div>
+            <div className="text-xs text-zinc-400 mt-1 font-mono">
+              (Equivalence: {balanceEUR.toFixed(2)} {symbol} | 1 EUR = 1 000 Credits)
+            </div>
+          </div>
+
+          {/* Auto-Reload Switch */}
+          <div className="flex items-center gap-3 bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-xs">
+            <div>
+              <div className="font-semibold text-zinc-200">Auto-Reload Unifie</div>
+              <div className="text-[10px] text-zinc-500">Recharge 50 000 Credits quand le solde &lt; 10 000 Credits</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAutoReload(!autoReload)}
+              className={`w-11 h-6 rounded-full transition-colors flex items-center p-1 ${
+                autoReload ? 'bg-emerald-500 justify-end' : 'bg-zinc-800 justify-start'
+              }`}
+            >
+              <span className="w-4 h-4 bg-zinc-950 rounded-full shadow-md"></span>
+            </button>
+          </div>
+        </div>
+
+        {/* Credit Packs Purchase Buttons */}
+        <div>
+          <label className="text-xs font-medium text-zinc-400 block mb-2">Packs de Credits KallFlow (Achat 1-Click Stripe / Hyperswitch)</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            {CREDIT_PACKS.map((pack) => (
+              <button
+                key={pack.id}
+                type="button"
+                onClick={() => handleBuyCreditPack(pack)}
+                className="p-3 bg-zinc-950/80 hover:bg-zinc-950 border border-zinc-800 hover:border-cyan-500/60 rounded-xl text-left transition-all flex flex-col justify-between space-y-2 group"
+              >
+                <div>
+                  <div className="font-bold text-zinc-200 group-hover:text-cyan-300 transition-colors">{pack.name}</div>
+                  <div className="text-sm font-semibold font-mono text-zinc-100 mt-1">
+                    +{pack.credits.toLocaleString()} Credits
+                  </div>
+                </div>
+                <div className="text-xs font-mono text-cyan-400 font-semibold pt-2 border-t border-zinc-800/80 flex justify-between items-center">
+                  <span>{pack.priceEUR} EUR</span>
+                  <span className="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded">Acheter</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Stripe Active Subscription Card */}
       <div className="bg-zinc-900/50 backdrop-blur-md border border-zinc-800/80 rounded-xl p-5 hover:border-zinc-700/80 transition-all duration-150 space-y-3 font-sans">
@@ -201,6 +284,9 @@ export const BillingPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Quotas & Sessions Overview Panel */}
+      <QuotasOverviewPanel quotas={quotas} />
 
       {/* Wallet Overview Cards */}
       <WalletOverviewCards

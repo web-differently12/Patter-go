@@ -30,6 +30,42 @@ export interface TenantSubscription {
   isAgencyPlan: boolean;
 }
 
+export interface TenantWallet {
+  tenantId: string;
+  creditsBalance: number; // 1 EUR = 1000 Credits
+  autoReloadEnabled: boolean;
+  autoReloadThreshold: number; // e.g. 10000
+  autoReloadPackAmount: number; // e.g. 50000
+}
+
+export interface TenantQuotas {
+  tenantId: string;
+  stripeSubscriptionId: string;
+  planTier: 'starter' | 'agency' | 'enterprise';
+  whatsappMessagesUsedMonth: number;
+  whatsappMessagesLimitMonth: number; // -1 for unlimited
+  whatsappSessionsActive: number;
+  whatsappSessionsLimit: number;
+  mcpActiveClients: number;
+  mcpClientsLimit: number; // -1 for unlimited
+  billingCycleResetAt: string;
+}
+
+export interface CreditRate {
+  service: string;
+  unit: string;
+  creditsPerUnit: number;
+  note?: string;
+}
+
+export interface CreditPack {
+  id: string;
+  name: string;
+  credits: number;
+  priceEUR: number;
+  stripePriceId: string;
+}
+
 export type IntegrationMode = 'managed' | 'custom_app';
 
 export type ProviderId =
