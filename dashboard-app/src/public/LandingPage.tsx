@@ -27,12 +27,12 @@ export const LandingPage: React.FC = () => {
             <a href="#features" className="hover:text-zinc-100 transition-colors">Plateforme</a>
             <a href="#architecture" className="hover:text-zinc-100 transition-colors">Architecture MCP</a>
             <a href="#demo" className="hover:text-zinc-100 transition-colors">Demo Temps Reel</a>
-            <a href="#pricing" className="hover:text-zinc-100 transition-colors">Tarifs & Credits</a>
+            <a href="#pricing" className="hover:text-zinc-100 transition-colors">Tarifs et Credits</a>
           </nav>
 
           <div className="flex items-center gap-3">
             <button className="bg-white hover:bg-zinc-200 text-zinc-950 font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
-              Lancer la Console →
+              Lancer la Console
             </button>
           </div>
         </div>
@@ -42,7 +42,7 @@ export const LandingPage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16 text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 font-mono">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          KallFlow Engine: Agents Vocaux, Visio et WhatsApp Multi-Tenant
+          KallFlow Engine: Agents Vocaux, Visio et Messaging Multi-Tenant
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-zinc-100 max-w-4xl mx-auto leading-tight">
@@ -50,7 +50,7 @@ export const LandingPage: React.FC = () => {
         </h1>
 
         <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Deployez des agents vocaux ultra-basse latence (&lt;500ms), des bots de reunion Zoom/Meet/Teams et des workflows WhatsApp automatises sous votre propre Marque Blanche Agence.
+          Deployez des agents vocaux ultra-basse latence (&lt;500ms), des bots de reunion visio et des workflows messaging automatises sous votre propre Marque Blanche Agence.
         </p>
 
         <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4 text-xs font-semibold">
@@ -92,7 +92,7 @@ export const LandingPage: React.FC = () => {
             {activeTab === 'voice' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-400">[Pipeline Stream Mode] STT Deepgram + LLM OpenRouter + TTS ElevenLabs</span>
+                  <span className="text-zinc-400">[KallFlow Neural Stream Pipeline] Reconnaissance Vocale + LLM Engine + Synthese HD</span>
                   <span className="text-emerald-400">Latence TTFA: 320ms</span>
                 </div>
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
@@ -111,18 +111,18 @@ export const LandingPage: React.FC = () => {
             {activeTab === 'whatsapp' && (
               <div className="space-y-3">
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-emerald-400 font-bold">WhatsApp Business:</span> "Votre rendez-vous est confirme pour demain a 14h00. Repondez 1 pour confirmer."
+                  <span className="text-emerald-400 font-bold">Messaging Engine:</span> "Votre rendez-vous est confirme pour demain a 14h00. Repondez 1 pour confirmer."
                 </div>
-                <div className="text-[11px] text-zinc-500">Moteur Evolution API / WAHA avec bascule automatique SMS.</div>
+                <div className="text-[11px] text-zinc-500">Moteur Messaging Unifie avec bascule automatique SMS.</div>
               </div>
             )}
 
             {activeTab === 'visio' && (
               <div className="space-y-3">
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-violet-400 font-bold">Bot Visio (Recall.ai Bridge):</span> Enregistrement, diarisation des intervenants et synthese BANT LeMUR automatique.
+                  <span className="text-violet-400 font-bold">Visio Bot Engine:</span> Enregistrement, diarisation des intervenants et synthese BANT automatique.
                 </div>
-                <div className="text-[11px] text-zinc-500">Support Zoom RTMS, Google Meet Media API & Teams Signed-in Bots.</div>
+                <div className="text-[11px] text-zinc-500">Prise en charge universelle des plateformes de visioconference.</div>
               </div>
             )}
 

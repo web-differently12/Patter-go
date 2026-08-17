@@ -18,8 +18,8 @@ export const AgentsPage: React.FC = () => {
       id: 'ag_receptionist_01',
       name: 'Agent Accueil Support Fr',
       mode: 'realtime',
-      voice: 'alloy',
-      model: 'gpt-realtime-mini',
+      voice: 'Voice Alloy HD',
+      model: 'Neural Realtime Engine',
       status: 'active',
       totalTurns: 12480,
     },
@@ -27,19 +27,19 @@ export const AgentsPage: React.FC = () => {
       id: 'ag_qualifier_02',
       name: 'Agent Qualifier B2B SaaS',
       mode: 'pipeline',
-      voice: 'eleven_flash_v2_5',
-      model: 'claude-3-5-sonnet',
-      sttProvider: 'Deepgram Nova-2',
-      ttsProvider: 'ElevenLabs',
+      voice: 'Voice Flash Ultra-HD',
+      model: 'Enterprise Intelligence Tier',
+      sttProvider: 'Ultra-Low Latency Neural STT',
+      ttsProvider: 'High-Fidelity Neural TTS',
       status: 'active',
       totalTurns: 8420,
     },
     {
-      id: 'ag_whatsapp_03',
-      name: 'Assistant Messenger & WhatsApp',
+      id: 'ag_copilot_03',
+      name: 'Copilote Visio et Recommandations',
       mode: 'pipeline',
-      voice: 'cartesia_sonic',
-      model: 'gpt-4o-mini',
+      voice: 'Voice Sonic HD',
+      model: 'Realtime Sales Copilot Engine',
       status: 'active',
       totalTurns: 19400,
     },
@@ -51,7 +51,7 @@ export const AgentsPage: React.FC = () => {
         <div>
           <span className="text-xs font-mono font-bold text-cyan-400">Agent Studio & Fleet Management</span>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Gestion de la Flotte d'Agents IA</h1>
-          <p className="text-xs text-slate-400">Concevez, testez et deployez vos agents vocaux, visio et messaging.</p>
+          <p className="text-xs text-slate-400">Concevez, testez et deployez vos agents vocaux, copilotes visio et workflows automatises.</p>
         </div>
 
         <button className="bg-white hover:bg-zinc-200 text-zinc-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-sm">
@@ -79,7 +79,7 @@ export const AgentsPage: React.FC = () => {
                   <span className="text-cyan-400 font-bold">{ag.mode}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Modèle LLM:</span>
+                  <span>Modele LLM:</span>
                   <span className="text-zinc-200">{ag.model}</span>
                 </div>
                 <div className="flex justify-between">
@@ -97,7 +97,7 @@ export const AgentsPage: React.FC = () => {
 
             <div className="pt-3 border-t border-zinc-800/80 flex justify-between items-center text-xs">
               <span className="text-zinc-500 font-mono">{ag.totalTurns.toLocaleString()} turns</span>
-              <button className="text-cyan-400 hover:underline font-semibold">Éditer dans Agent Studio →</button>
+              <button className="text-cyan-400 hover:underline font-semibold">Editer dans Agent Studio →</button>
             </div>
           </div>
         ))}

@@ -2,11 +2,24 @@ import React, { useState } from 'react';
 
 export const AgentEditorPage: React.FC = () => {
   const [systemPrompt, setSystemPrompt] = useState(
-    'Vous êtes l\'assistant accueil d\'entreprise. Répondez de manière courtoise, synthétique et sans jargon.'
+    'Vous etes l\'assistant accueil d\'entreprise. Repondez de maniere courtoise, synthetique et sans jargon.'
   );
-  const [model, setModel] = useState('gpt-realtime-mini');
-  const [voice, setVoice] = useState('alloy');
+  const [model, setModel] = useState('Neural Realtime Engine');
+  const [voice, setVoice] = useState('Voice Flash Ultra-HD');
   const [bargeInThresholdMs, setBargeInMs] = useState(300);
+
+  // Vapi-inspired Voice Agent Tuning
+  const [backchanneling, setBackchanneling] = useState(true);
+  const [ambientNoiseSound, setAmbientNoise] = useState<'office' | 'cafe' | 'silent'>('office');
+  const [fillerWords, setFillerWords] = useState(true);
+
+  // LockedInAI-inspired Realtime Visio Copilot Tuning
+  const [copilotSuggestions, setCopilotSuggestions] = useState(true);
+  const [objectionDetector, setObjectionDetector] = useState(true);
+
+  // Lindy.ai-inspired Retail Workflow Triggers
+  const [crmAutoSync, setCrmAutoSync] = useState(true);
+  const [calendarAutoSchedule, setCalendarAutoSchedule] = useState(true);
 
   return (
     <div className="space-y-6 text-slate-100 p-6 bg-[#08090a] min-h-screen font-sans">
@@ -23,29 +36,76 @@ export const AgentEditorPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* System Prompt & Instructions */}
         <div className="lg:col-span-2 bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4">
-          <label className="block text-xs font-semibold text-zinc-300">System Prompt & Instructions Telephoniques</label>
+          <label className="block text-xs font-semibold text-zinc-300">System Prompt et Instructions Telephoniques</label>
           <textarea
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={12}
+            rows={10}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 font-mono focus:outline-none focus:border-cyan-500 leading-relaxed"
           />
+
+          {/* LockedInAI & Lindy Workflow Options */}
+          <div className="border-t border-zinc-800/80 pt-4 space-y-3 text-xs">
+            <h4 className="font-bold text-white">Copilote Temps Reel & Workflows Automatises</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={copilotSuggestions}
+                  onChange={(e) => setCopilotSuggestions(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Suggestions Copilote en direct</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={objectionDetector}
+                  onChange={(e) => setObjectionDetector(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Detecteur d'objections B2B</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={crmAutoSync}
+                  onChange={(e) => setCrmAutoSync(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Auto-Sync CRM / Fiche Client</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={calendarAutoSchedule}
+                  onChange={(e) => setCalendarAutoSchedule(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Prise de RDV Calendrier auto</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* Engine, Voice & Tuning */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4 text-xs">
-          <h3 className="font-bold text-white text-sm">Paramètres Moteur & Voix</h3>
+          <h3 className="font-bold text-white text-sm">Paramètres Moteur et Voix</h3>
 
           <div>
-            <label className="block text-zinc-400 font-medium mb-1">Modèle LLM / Realtime</label>
+            <label className="block text-zinc-400 font-medium mb-1">Modele LLM / Realtime</label>
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-zinc-200"
             >
-              <option value="gpt-realtime-mini">OpenAI Realtime Mini</option>
-              <option value="claude-3-5-sonnet">Anthropic Claude 3.5 Sonnet</option>
-              <option value="grok-voice">xAI Grok Voice Agent</option>
+              <option value="Neural Realtime Engine">Neural Realtime Engine</option>
+              <option value="Enterprise Intelligence Tier">Enterprise Intelligence Tier</option>
+              <option value="Realtime Sales Copilot Engine">Realtime Sales Copilot Engine</option>
             </select>
           </div>
 
@@ -56,14 +116,52 @@ export const AgentEditorPage: React.FC = () => {
               onChange={(e) => setVoice(e.target.value)}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-zinc-200"
             >
-              <option value="alloy">OpenAI Alloy</option>
-              <option value="eleven_flash_v2_5">ElevenLabs Flash v2.5</option>
-              <option value="cartesia_sonic">Cartesia Sonic</option>
+              <option value="Voice Flash Ultra-HD">Voice Flash Ultra-HD</option>
+              <option value="Voice Sonic HD">Voice Sonic HD</option>
+              <option value="Voice Alloy HD">Voice Alloy HD</option>
             </select>
           </div>
 
+          {/* Vapi-inspired Fine Voice Options */}
+          <div className="border-t border-zinc-800/80 pt-3 space-y-2 font-mono">
+            <span className="font-bold text-zinc-300 block">Fine Conversational Options</span>
+
+            <label className="flex items-center gap-2 text-[11px]">
+              <input
+                type="checkbox"
+                checked={backchanneling}
+                onChange={(e) => setBackchanneling(e.target.checked)}
+                className="accent-cyan-500"
+              />
+              <span>Backchanneling ("mm-hmm", "d'accord")</span>
+            </label>
+
+            <label className="flex items-center gap-2 text-[11px]">
+              <input
+                type="checkbox"
+                checked={fillerWords}
+                onChange={(e) => setFillerWords(e.target.checked)}
+                className="accent-cyan-500"
+              />
+              <span>Mots de remplissage pendant RAG</span>
+            </label>
+
+            <div>
+              <label className="block text-zinc-400 text-[11px] mb-1">Bruit d'ambiance d'arriere-plan</label>
+              <select
+                value={ambientNoiseSound}
+                onChange={(e) => setAmbientNoise(e.target.value as any)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-zinc-300"
+              >
+                <option value="office">Ambiance Bureau Discret</option>
+                <option value="cafe">Ambiance Cafe</option>
+                <option value="silent">Silencieux (Insonorise)</option>
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-zinc-400 font-medium mb-1">Seuil Interruption Barge-In (ms): {bargeInThresholdMs}ms</label>
+            <label className="block text-zinc-400 font-medium mb-1">Seuil Interruption Barge-In: {bargeInThresholdMs}ms</label>
             <input
               type="range"
               min={100}

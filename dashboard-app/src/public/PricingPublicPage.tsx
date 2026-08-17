@@ -51,14 +51,14 @@ export const PricingPublicPage: React.FC = () => {
         <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <h3 className="font-bold text-white text-base">Starter / Dev</h3>
-            <p className="text-xs text-zinc-400">Pour developper et tester des agents vocaux et WhatsApp.</p>
+            <p className="text-xs text-zinc-400">Pour developper et tester des agents vocaux et messaging.</p>
             <div className="text-3xl font-extrabold font-mono text-zinc-100">
               {billingCycle === 'monthly' ? '49 EUR' : '470 EUR'} <span className="text-xs text-zinc-500 font-sans font-normal">/ {billingCycle === 'monthly' ? 'mois' : 'an'}</span>
             </div>
             <ul className="text-xs text-zinc-300 space-y-2 pt-2 border-t border-zinc-800/80">
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 50 000 Credits mensuels inclus</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 2 500 Messages WhatsApp gratuits</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 1 Instance WhatsApp active</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 2 500 Messages messaging gratuits</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 1 Instance messaging active</li>
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 1 Client MCP / API externe</li>
             </ul>
           </div>
@@ -78,8 +78,8 @@ export const PricingPublicPage: React.FC = () => {
             </div>
             <ul className="text-xs text-zinc-300 space-y-2 pt-2 border-t border-zinc-800/80">
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 150 000 Credits mensuels inclus</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 15 000 Messages WhatsApp gratuits</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 5 Instances WhatsApp actives</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 15 000 Messages messaging gratuits</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 5 Instances messaging actives</li>
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 5 Clients MCP / API externes</li>
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> Marque Blanche & Marge personnalisable</li>
             </ul>
@@ -99,8 +99,8 @@ export const PricingPublicPage: React.FC = () => {
             </div>
             <ul className="text-xs text-zinc-300 space-y-2 pt-2 border-t border-zinc-800/80">
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 500 000 Credits mensuels inclus</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> Messages WhatsApp Illimites</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 25 Instances WhatsApp actives</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> Messages messaging Illimites</li>
+              <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> 25 Instances messaging actives</li>
               <li className="flex items-center gap-2"><span className="text-cyan-400">✓</span> Clients MCP Illimites</li>
             </ul>
           </div>

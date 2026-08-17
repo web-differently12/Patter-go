@@ -13,9 +13,9 @@ export const LiveMeteringPanel: React.FC = () => {
   const [telemetry, setTelemetry] = useState<LiveTelemetryData>({
     llmTokensIn: 1420,
     llmTokensOut: 280,
-    sttDurationMs: 42000, // 42.0s
+    sttDurationMs: 42000,
     ttsCharacters: 8900,
-    sipDurationMs: 125000, // 125.0s
+    sipDurationMs: 125000,
     activeCallsCount: 4,
   });
 
@@ -50,7 +50,6 @@ export const LiveMeteringPanel: React.FC = () => {
           <p className="text-[11px] text-zinc-400 mt-0.5">Telemetrie en direct des micro-transactions LLM, STT, TTS et Telephonie SIP.</p>
         </div>
 
-        {/* Outline Simulation Debug Button */}
         <button
           onClick={handleSimulateTraffic}
           disabled={simulating}
@@ -60,13 +59,12 @@ export const LiveMeteringPanel: React.FC = () => {
         </button>
       </div>
 
-      {/* 4-Column Live Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Column 1: LLM Tokens */}
         <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
           <div className="flex justify-between items-center text-zinc-400 font-medium">
             <span>LLM Brain Tier</span>
-            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">OpenRouter</span>
+            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Neural Router</span>
           </div>
           <div className="text-base font-semibold text-zinc-100 font-mono">
             {telemetry.llmTokensIn.toLocaleString()} In / {telemetry.llmTokensOut.toLocaleString()} Out
@@ -80,7 +78,7 @@ export const LiveMeteringPanel: React.FC = () => {
         <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
           <div className="flex justify-between items-center text-zinc-400 font-medium">
             <span>STT Transcription</span>
-            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Deepgram</span>
+            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Ultra-Low Latency</span>
           </div>
           <div className="text-base font-semibold text-zinc-100 font-mono">
             {formattedSttSeconds}s
@@ -94,7 +92,7 @@ export const LiveMeteringPanel: React.FC = () => {
         <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
           <div className="flex justify-between items-center text-zinc-400 font-medium">
             <span>TTS Synthese</span>
-            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">ElevenLabs</span>
+            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Neural HD Voice</span>
           </div>
           <div className="text-base font-semibold text-zinc-100 font-mono">
             {telemetry.ttsCharacters.toLocaleString()} chars
@@ -108,7 +106,7 @@ export const LiveMeteringPanel: React.FC = () => {
         <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg p-3.5 space-y-1.5">
           <div className="flex justify-between items-center text-zinc-400 font-medium">
             <span>SIP / Carrier</span>
-            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Twilio / Telnyx</span>
+            <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono">Telecom Gateway</span>
           </div>
           <div className="text-base font-semibold text-zinc-100 font-mono">
             {formattedSipSeconds}s

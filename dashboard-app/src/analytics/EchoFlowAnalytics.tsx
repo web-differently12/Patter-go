@@ -16,9 +16,9 @@ export const EchoFlowAnalytics: React.FC = () => {
       <div className="bg-slate-950/90 border-b border-slate-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center font-bold text-slate-950 text-sm">
-            EF
+            KF
           </div>
-          <span className="font-extrabold tracking-tight text-white text-base">EchoFlow Analytics</span>
+          <span className="font-extrabold tracking-tight text-white text-base">KallFlow Analytics</span>
         </div>
 
         <nav className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs">

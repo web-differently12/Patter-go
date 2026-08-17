@@ -9,7 +9,7 @@ export const PhoneNumbersPage: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight text-white mt-0.5">Gestion des Numéros de Téléphone</h1>
         </div>
         <button className="bg-white hover:bg-zinc-200 text-zinc-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-sm">
-          + Acheter un Numéro (Twilio/Telnyx/Plivo)
+          + Acheter un Numéro (Telecom Gateway)
         </button>
       </div>
 
@@ -23,7 +23,7 @@ export const PhoneNumbersPage: React.FC = () => {
           <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 flex justify-between items-center">
             <div>
               <div className="font-bold text-white text-sm">+33 1 89 20 42 10</div>
-              <div className="text-zinc-400 mt-0.5">Carrier: Telnyx | Connection ID: conn_telnyx_01</div>
+              <div className="text-zinc-400 mt-0.5">Carrier: Telecom Gateway | Connection ID: conn_patter_01</div>
             </div>
             <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">RATTACHÉ: Agent Accueil Support</span>
           </div>
