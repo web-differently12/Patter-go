@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 export const LandingPage: React.FC = () => {
   const [simulatingCall, setSimulatingCall] = useState(false);
-  const [activeTab, setActiveTab] = useState<'voice' | 'whatsapp' | 'visio' | 'mcp'>('voice');
+  const [activeTab, setActiveTab] = useState<'voice' | 'whatsapp' | 'visio' | 'mcp' | 'avatar'>('voice');
 
   const handleSimulateCall = () => {
     setSimulatingCall(true);
@@ -24,15 +24,15 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-zinc-400 font-medium">
-            <a href="#features" className="hover:text-zinc-100 transition-colors">Plateforme</a>
-            <a href="#architecture" className="hover:text-zinc-100 transition-colors">Architecture MCP</a>
-            <a href="#demo" className="hover:text-zinc-100 transition-colors">Demo Temps Reel</a>
-            <a href="#pricing" className="hover:text-zinc-100 transition-colors">Tarifs et Credits</a>
+            <a href="#features" className="hover:text-zinc-100 transition-colors">Plateforme & Pipeline</a>
+            <a href="#campaigns" className="hover:text-zinc-100 transition-colors">Campagnes Omnicanales</a>
+            <a href="#mcp" className="hover:text-zinc-100 transition-colors">Passerelle MCP & RAG</a>
+            <a href="#pricing" className="hover:text-zinc-100 transition-colors">Tarifs & Credits</a>
           </nav>
 
           <div className="flex items-center gap-3">
             <button className="bg-white hover:bg-zinc-200 text-zinc-950 font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
-              Lancer la Console
+              Lancer la Console →
             </button>
           </div>
         </div>
@@ -42,15 +42,15 @@ export const LandingPage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-6 pt-20 pb-16 text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 font-mono">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          KallFlow Engine: Agents Vocaux, Visio et Messaging Multi-Tenant
+          KallFlow Engine: Voice, Visio, WhatsApp & Avatars GPU Local
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-zinc-100 max-w-4xl mx-auto leading-tight">
-          La Plateforme Conversationnelle Unifiee pour Agents IA Enterprise
+          La Infrastructure Conversationnelle Unifiee pour Agents IA Enterprise
         </h1>
 
         <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Deployez des agents vocaux ultra-basse latence (&lt;500ms), des bots de reunion visio et des workflows messaging automatises sous votre propre Marque Blanche Agence.
+          Pipelining temps reel (STT Deepgram + LLM OpenRouter + TTS ElevenLabs), VAD G711/PCM, annulation de barge-in thread-safe, bots visio Recall.ai, campagnes WhatsApp & SMS anti-spam et passerelle MCP Postgres RLS.
         </p>
 
         <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4 text-xs font-semibold">
@@ -58,7 +58,7 @@ export const LandingPage: React.FC = () => {
             Demarrer un Essai Gratuit
           </button>
           <a href="#demo" className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 px-6 py-3 rounded-xl transition-colors">
-            Tester la Demo Vocale
+            Tester la Demo Live
           </a>
         </div>
       </section>
@@ -68,12 +68,12 @@ export const LandingPage: React.FC = () => {
         <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 shadow-2xl backdrop-blur-md space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-800/80 pb-4 gap-4">
             <div>
-              <h3 className="text-base font-semibold text-zinc-100">Simulateur d'Agent en Temps Reel</h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Testez la latence sub-500ms et la synthese vocale du KallFlow Engine.</p>
+              <h3 className="text-base font-semibold text-zinc-100">Simulateur Moteur Temps Reel</h3>
+              <p className="text-xs text-zinc-400 mt-0.5">Testez la latence sub-500ms, la VAD PCM et le barge-in barge-in instantane.</p>
             </div>
 
             <div className="flex bg-zinc-950 p-1 border border-zinc-800 rounded-xl text-xs">
-              {(['voice', 'whatsapp', 'visio', 'mcp'] as const).map((tab) => (
+              {(['voice', 'whatsapp', 'visio', 'mcp', 'avatar'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -92,18 +92,18 @@ export const LandingPage: React.FC = () => {
             {activeTab === 'voice' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-400">[KallFlow Neural Stream Pipeline] Reconnaissance Vocale + LLM Engine + Synthese HD</span>
-                  <span className="text-emerald-400">Latence TTFA: 320ms</span>
+                  <span className="text-zinc-400">[Pipeline Mode] G711-to-PCM VAD + Smart-Turn v3 + Barge-In Cancel</span>
+                  <span className="text-emerald-400">TTFA: 320ms | Cost Opti Matrix Active</span>
                 </div>
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-cyan-400 font-bold">Agent KallFlow:</span> "Bonjour, je suis l'assistant vocal KallFlow. Comment puis-je vous aider aujourd'hui ?"
+                  <span className="text-cyan-400 font-bold">Agent KallFlow:</span> "Bonjour, je suis l'assistant vocal KallFlow Engine. Comment puis-je vous aider aujourd'hui ?"
                 </div>
                 <button
                   onClick={handleSimulateCall}
                   disabled={simulatingCall}
                   className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold px-4 py-2 rounded-lg transition-colors text-xs"
                 >
-                  {simulatingCall ? 'Appel en Cours...' : 'Lancer un Appel de Test (Simule)'}
+                  {simulatingCall ? 'Session Audio Active...' : 'Lancer une Session Vocale (Simulee)'}
                 </button>
               </div>
             )}
@@ -111,27 +111,32 @@ export const LandingPage: React.FC = () => {
             {activeTab === 'whatsapp' && (
               <div className="space-y-3">
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-emerald-400 font-bold">Messaging Engine:</span> "Votre rendez-vous est confirme pour demain a 14h00. Repondez 1 pour confirmer."
+                  <span className="text-emerald-400 font-bold">WhatsApp Engine:</span> Normalisation E.164 (<code className="text-cyan-400">@s.whatsapp.net</code>), rotation de session round-robin et fallback SMS automatique.
                 </div>
-                <div className="text-[11px] text-zinc-500">Moteur Messaging Unifie avec bascule automatique SMS.</div>
               </div>
             )}
 
             {activeTab === 'visio' && (
               <div className="space-y-3">
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-violet-400 font-bold">Visio Bot Engine:</span> Enregistrement, diarisation des intervenants et synthese BANT automatique.
+                  <span className="text-violet-400 font-bold">Meeting Engine:</span> Integration Recall.ai pour Zoom RTMS, Google Meet Media API & Teams Signed-in Bots avec scoring BANT LeMUR.
                 </div>
-                <div className="text-[11px] text-zinc-500">Prise en charge universelle des plateformes de visioconference.</div>
               </div>
             )}
 
             {activeTab === 'mcp' && (
               <div className="space-y-3">
                 <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
-                  <span className="text-amber-400 font-bold">Passerelle MCP:</span> Agent connecte a la base PostgreSQL via le protocole Model Context Protocol Streamable-HTTP.
+                  <span className="text-amber-400 font-bold">Passerelle MCP:</span> Decouverte dynamique <code className="text-cyan-400">tools/list</code> et execution sous PostgreSQL RLS avec isolation tenant.
                 </div>
-                <div className="text-[11px] text-zinc-500">Decouverte automatique des outils et execution securisee sous RLS.</div>
+              </div>
+            )}
+
+            {activeTab === 'avatar' && (
+              <div className="space-y-3">
+                <div className="p-3 bg-zinc-900/60 rounded border border-zinc-800/80 text-zinc-200">
+                  <span className="text-rose-400 font-bold">Avatar Engine:</span> Mode hybride WaveSpeed API temps reel & conteneurs <code className="text-cyan-400">avatar-renderer-mcp</code> sur pool GPU local.
+                </div>
               </div>
             )}
           </div>
@@ -141,7 +146,7 @@ export const LandingPage: React.FC = () => {
       {/* Feature Pillars */}
       <section id="features" className="max-w-7xl mx-auto px-6 py-16 border-t border-zinc-800/80">
         <h2 className="text-2xl font-bold tracking-tight text-zinc-100 text-center mb-12">
-          Fonctionnalites Cles de l'Infrastructure KallFlow
+          Architecture Moteur Conversationnel KallFlow
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">

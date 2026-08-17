@@ -1,5 +1,5 @@
 // Public Showcase Pages
-export { LandingPage, PricingPublicPage } from '../public';
+export { LandingPage, PricingPublicPage, CampaignsPublicPage } from '../public';
 
 // Client Analytics Suite
 export {

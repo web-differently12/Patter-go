@@ -13,6 +13,12 @@ export const AgentEditorPage: React.FC = () => {
   const [ambientNoiseSound, setAmbientNoise] = useState<'office' | 'cafe' | 'silent'>('office');
   const [fillerWords, setFillerWords] = useState(true);
 
+  // Audio DSP & Turn Detection Options
+  const [noiseSuppression, setNoiseSuppression] = useState<'krisp' | 'rnnoise' | 'off'>('krisp');
+  const [semanticTurnDetector, setSemanticTurnDetector] = useState<'smart_turn_v3' | 'namo' | 'vad_energy'>('smart_turn_v3');
+  const [preemptiveGeneration, setPreemptiveGeneration] = useState(true);
+  const [tokenCompaction, setTokenCompaction] = useState(true);
+
   // LockedInAI-inspired Realtime Visio Copilot Tuning
   const [copilotSuggestions, setCopilotSuggestions] = useState(true);
   const [objectionDetector, setObjectionDetector] = useState(true);
@@ -43,6 +49,59 @@ export const AgentEditorPage: React.FC = () => {
             rows={10}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 font-mono focus:outline-none focus:border-cyan-500 leading-relaxed"
           />
+
+          {/* Audio DSP & Turn Detection Tuning */}
+          <div className="border-t border-zinc-800/80 pt-4 space-y-3 text-xs">
+            <h4 className="font-bold text-white">Traitement du Signal Audio (DSP) & Detection de Parole</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
+              <div className="p-2 bg-zinc-900 rounded border border-zinc-800 space-y-1">
+                <label className="text-[11px] text-zinc-400 block font-semibold">Suppression du Bruit</label>
+                <select
+                  value={noiseSuppression}
+                  onChange={(e) => setNoiseSuppression(e.target.value as any)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded p-1 text-[11px] text-zinc-200"
+                >
+                  <option value="krisp">Krisp Neural AI (Haute Precision)</option>
+                  <option value="rnnoise">RNNoise Open-Source (Leger)</option>
+                  <option value="off">Desactive (Pass-Through Direct)</option>
+                </select>
+              </div>
+
+              <div className="p-2 bg-zinc-900 rounded border border-zinc-800 space-y-1">
+                <label className="text-[11px] text-zinc-400 block font-semibold">Detection Fin de Tour (Turn Detector)</label>
+                <select
+                  value={semanticTurnDetector}
+                  onChange={(e) => setSemanticTurnDetector(e.target.value as any)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded p-1 text-[11px] text-zinc-200"
+                >
+                  <option value="smart_turn_v3">Smart-Turn v3 (Semantique ML)</option>
+                  <option value="namo">NAMO Realtime Model</option>
+                  <option value="vad_energy">VAD Energie Silences (Legacy)</option>
+                </select>
+              </div>
+
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={preemptiveGeneration}
+                  onChange={(e) => setPreemptiveGeneration(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Generation Preemptive LLM</span>
+              </label>
+
+              <label className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={tokenCompaction}
+                  onChange={(e) => setTokenCompaction(e.target.checked)}
+                  className="accent-cyan-500"
+                />
+                <span>Compaction de Tokens Contextuels</span>
+              </label>
+            </div>
+          </div>
 
           {/* LockedInAI & Lindy Workflow Options */}
           <div className="border-t border-zinc-800/80 pt-4 space-y-3 text-xs">
@@ -122,7 +181,7 @@ export const AgentEditorPage: React.FC = () => {
             </select>
           </div>
 
-          {/* Vapi-inspired Fine Voice Options */}
+          {/* Fine Conversational Options */}
           <div className="border-t border-zinc-800/80 pt-3 space-y-2 font-mono">
             <span className="font-bold text-zinc-300 block">Fine Conversational Options</span>
 
