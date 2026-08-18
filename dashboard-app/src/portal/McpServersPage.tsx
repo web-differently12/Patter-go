@@ -12,6 +12,109 @@ interface McpIntegration {
   isCustom?: boolean;
 }
 
+interface ServicePreset {
+  id: string;
+  name: string;
+  badge: string;
+  category: 'CRM' | 'Workspace' | 'Support' | 'Database' | 'DevOps' | 'Payments' | 'Custom';
+  defaultUrl: string;
+  defaultTransport: 'HTTP/SSE' | 'WebSocket';
+  discoveredTools: string[];
+}
+
+const SERVICE_PRESETS: ServicePreset[] = [
+  {
+    id: 'preset-hubspot',
+    name: 'HubSpot CRM',
+    badge: 'HubSpot API',
+    category: 'CRM',
+    defaultUrl: 'https://mcp.patter.ai/v1/hubspot/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['hubspot_search_contacts', 'hubspot_create_deal', 'hubspot_log_call'],
+  },
+  {
+    id: 'preset-salesforce',
+    name: 'Salesforce Sales Cloud',
+    badge: 'Salesforce API',
+    category: 'CRM',
+    defaultUrl: 'https://mcp.patter.ai/v1/salesforce/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['salesforce_find_lead', 'salesforce_create_task', 'salesforce_update_opportunity'],
+  },
+  {
+    id: 'preset-google',
+    name: 'Google Workspace',
+    badge: 'Google API',
+    category: 'Workspace',
+    defaultUrl: 'https://mcp.patter.ai/v1/google/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['google_calendar_create_event', 'gmail_send_message'],
+  },
+  {
+    id: 'preset-slack',
+    name: 'Slack Workspaces',
+    badge: 'Slack API',
+    category: 'Workspace',
+    defaultUrl: 'https://mcp.patter.ai/v1/slack/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['slack_send_channel_message', 'slack_post_summary'],
+  },
+  {
+    id: 'preset-zendesk',
+    name: 'Zendesk Support',
+    badge: 'Zendesk API',
+    category: 'Support',
+    defaultUrl: 'https://mcp.patter.ai/v1/zendesk/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['zendesk_create_ticket', 'zendesk_update_status'],
+  },
+  {
+    id: 'preset-notion',
+    name: 'Notion Workspace',
+    badge: 'Notion API',
+    category: 'Workspace',
+    defaultUrl: 'https://mcp.patter.ai/v1/notion/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['notion_search_database', 'notion_append_block'],
+  },
+  {
+    id: 'preset-stripe',
+    name: 'Stripe Payments',
+    badge: 'Stripe API',
+    category: 'Payments',
+    defaultUrl: 'https://mcp.patter.ai/v1/stripe/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['stripe_create_payment_link', 'stripe_get_subscription'],
+  },
+  {
+    id: 'preset-jira',
+    name: 'Jira Software',
+    badge: 'Jira API',
+    category: 'DevOps',
+    defaultUrl: 'https://mcp.patter.ai/v1/jira/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['jira_create_issue', 'jira_update_ticket'],
+  },
+  {
+    id: 'preset-postgres',
+    name: 'PostgreSQL DB',
+    badge: 'Postgres SQL',
+    category: 'Database',
+    defaultUrl: 'https://mcp.patter.ai/v1/postgres/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['postgres_execute_read_query', 'postgres_vector_search'],
+  },
+  {
+    id: 'preset-custom',
+    name: 'Autre Serveur MCP Custom',
+    badge: 'Streamable SSE',
+    category: 'Custom',
+    defaultUrl: 'https://mcp.votre-entreprise.com/sse',
+    defaultTransport: 'HTTP/SSE',
+    discoveredTools: ['custom_tool_execute', 'custom_schema_inspect'],
+  },
+];
+
 export const McpServersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'catalog' | 'connected' | 'custom'>('catalog');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -20,8 +123,9 @@ export const McpServersPage: React.FC = () => {
 
   // Custom Integration Modal State
   const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
-  const [customName, setCustomName] = useState<string>('');
-  const [customUrl, setCustomUrl] = useState<string>('');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('preset-hubspot');
+  const [customName, setCustomName] = useState<string>('HubSpot CRM');
+  const [customUrl, setCustomUrl] = useState<string>('https://mcp.patter.ai/v1/hubspot/sse');
   const [customTransport, setCustomTransport] = useState<'HTTP/SSE' | 'WebSocket'>('HTTP/SSE');
   const [customApiKey, setCustomApiKey] = useState<string>('');
 
@@ -176,26 +280,33 @@ export const McpServersPage: React.FC = () => {
     );
   };
 
+  const handleSelectPreset = (preset: ServicePreset) => {
+    setSelectedPresetId(preset.id);
+    setCustomName(preset.name);
+    setCustomUrl(preset.defaultUrl);
+    setCustomTransport(preset.defaultTransport);
+  };
+
   const handleAddCustomServer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customName || !customUrl) return;
 
+    const matchedPreset = SERVICE_PRESETS.find((p) => p.id === selectedPresetId);
+
     const newServer: McpIntegration = {
       id: `custom-mcp-${Date.now()}`,
       name: customName,
-      category: 'Custom',
-      description: `Serveur MCP sur-mesure connecte via ${customUrl}`,
-      authType: customApiKey ? 'API Key' : 'Custom Headers',
+      category: matchedPreset?.category || 'Custom',
+      description: `Connecteur API / Serveur MCP (${customUrl})`,
+      authType: customApiKey ? 'API Key' : 'OAuth2',
       connected: true,
       transport: customTransport,
-      discoveredTools: ['custom_tool_execute', 'custom_schema_inspect'],
+      discoveredTools: matchedPreset ? matchedPreset.discoveredTools : ['custom_tool_execute', 'custom_schema_inspect'],
       isCustom: true,
     };
 
     setIntegrations([newServer, ...integrations]);
     setShowCustomModal(false);
-    setCustomName('');
-    setCustomUrl('');
     setCustomApiKey('');
   };
 
@@ -358,19 +469,19 @@ export const McpServersPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Connect Custom MCP Server Modal */}
+      {/* Connect Custom MCP Server Modal with Service Presets */}
       {showCustomModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleAddCustomServer}
-            className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-xl w-full space-y-4 shadow-2xl"
+            className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 max-w-2xl w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
               <div>
                 <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
-                  BYO Custom Integration
+                  BYO Custom Integration & Preset Picker
                 </span>
-                <h3 className="font-bold text-white text-lg mt-1">Connecter n'importe quelle API ou Serveur MCP</h3>
+                <h3 className="font-bold text-white text-lg mt-1">Connecter une API / Serveur MCP (Choix Service)</h3>
               </div>
               <button
                 type="button"
@@ -381,16 +492,40 @@ export const McpServersPage: React.FC = () => {
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400">
-              Renseignez l'URL de votre propre serveur MCP (Streamable-HTTP / SSE) ou API sur-mesure. Le gateway inspectera automatiquement les endpoints RPC.
-            </p>
+            {/* Quick Presets Picker */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-300 block">1. Selectionnez un Service / Preset API</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {SERVICE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleSelectPreset(preset)}
+                    className={`p-2.5 rounded-xl border text-left transition-all space-y-1 ${
+                      selectedPresetId === preset.id
+                        ? 'bg-cyan-950/80 border-cyan-500 text-white font-bold'
+                        : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold">{preset.name}</span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-950 text-cyan-400 border border-zinc-800">
+                        {preset.badge}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            <div className="space-y-3 text-xs font-mono">
+            {/* Endpoint & Key Configuration */}
+            <div className="space-y-3 text-xs font-mono pt-2 border-t border-zinc-900">
+              <label className="text-xs font-bold text-zinc-300 block">2. Parametres de Connexion Endpoint</label>
+
               <div>
-                <label className="text-zinc-300 block mb-1">Nom du Connecteur / Service</label>
+                <label className="text-zinc-400 block mb-1">Nom Affiche du Connecteur</label>
                 <input
                   type="text"
-                  placeholder="Ex: Mon CRM Proprietaire / DB Interne"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   required
@@ -399,10 +534,9 @@ export const McpServersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-zinc-300 block mb-1">URL Endpoint MCP (HTTP/SSE / WebSocket)</label>
+                <label className="text-zinc-400 block mb-1">URL Endpoint MCP (HTTP/SSE / WebSocket)</label>
                 <input
                   type="url"
-                  placeholder="https://mcp.votre-entreprise.com/sse"
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
                   required
@@ -412,7 +546,7 @@ export const McpServersPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-zinc-300 block mb-1">Transport MCP</label>
+                  <label className="text-zinc-400 block mb-1">Transport MCP</label>
                   <select
                     value={customTransport}
                     onChange={(e) => setCustomTransport(e.target.value as any)}
@@ -424,7 +558,7 @@ export const McpServersPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-zinc-300 block mb-1">Cle API / Bearer Token (Optionnel)</label>
+                  <label className="text-zinc-400 block mb-1">Cle API / Token Tenant (Optionnel)</label>
                   <input
                     type="password"
                     placeholder="sk_live_..."
