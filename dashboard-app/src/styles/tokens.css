@@ -4,6 +4,22 @@
    one peach accent, hard borders, dot-grid texture.
    ========================================================================= */
 
+:root, [data-theme="dark"] {
+  --bg-app: #09090b;
+  --bg-card: rgba(24, 24, 27, 0.6);
+  --border-card: rgba(39, 39, 42, 0.8);
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
+}
+
+[data-theme="light"] {
+  --bg-app: #f4f4f5;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --border-card: rgba(228, 228, 231, 0.9);
+  --text-main: #18181b;
+  --text-muted: #71717a;
+}
+
 :root {
   /* --- color: ink + surfaces --- */
   --ink:           #000000;
